@@ -1,15 +1,26 @@
+console.log("harga.js loaded");
+
 let stok = JSON.parse(localStorage.getItem("stok")) || [];
 let cart = [];
 
+console.log("stok:", stok);
+
 function renderStok() {
   const el = document.getElementById("barangList");
+  if (!el) return console.error("barangList not found");
+
   el.innerHTML = "";
+
+  if (stok.length === 0) {
+    el.innerHTML = "<p>Stok kosong</p>";
+    return;
+  }
 
   stok.forEach((item, i) => {
     el.innerHTML += `
       <div class="card">
         <h4>${item.nama}</h4>
-        <p>(${item.jumlah})</p>
+        <p>Sisa: (${item.jumlah})</p>
         <button ${item.jumlah === 0 ? "disabled" : ""} 
           onclick="tambah(${i})">TAMBAH</button>
       </div>
@@ -25,19 +36,6 @@ function tambah(i) {
   else cart.push({ nama: stok[i].nama, harga: stok[i].harga, qty: 1 });
 
   stok[i].jumlah--;
-  save();
-}
-
-function kurang(nama) {
-  let item = cart.find(c => c.nama === nama);
-  let stokItem = stok.find(s => s.nama === nama);
-
-  item.qty--;
-  stokItem.jumlah++;
-
-  if (item.qty <= 0)
-    cart = cart.filter(c => c.nama !== nama);
-
   save();
 }
 
@@ -68,8 +66,21 @@ function renderCart() {
 }
 
 function tambahByName(nama) {
-  let index = stok.findIndex(s => s.nama === nama);
-  tambah(index);
+  let i = stok.findIndex(s => s.nama === nama);
+  tambah(i);
+}
+
+function kurang(nama) {
+  let item = cart.find(c => c.nama === nama);
+  let stokItem = stok.find(s => s.nama === nama);
+
+  item.qty--;
+  stokItem.jumlah++;
+
+  if (item.qty <= 0)
+    cart = cart.filter(c => c.nama !== nama);
+
+  save();
 }
 
 function bayar() {
