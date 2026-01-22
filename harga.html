@@ -144,15 +144,18 @@
     background: #fff;
     border-radius: 10px;
     padding: 20px;
-    width: 320px;
+    width: 350px;
+    max-width: 90%;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     text-align: center;
     font-family: Arial, sans-serif;
+    z-index: 9999;
   }
 
   .popup h2 {
     margin-top: 0;
-    font-size: 20px;
+    font-size: 22px;
+    color: #4CAF50;
   }
 
   .popup table {
@@ -163,7 +166,7 @@
 
   .popup th, .popup td {
     border-bottom: 1px solid #ddd;
-    padding: 5px;
+    padding: 6px;
     font-size: 14px;
   }
 
@@ -186,6 +189,13 @@
     background-color: #45a049;
   }
 
+  /* Print only struk */
+  @media print {
+    body * { visibility: hidden; }
+    .popup, .popup * { visibility: visible; }
+    .popup { position: absolute; top: 0; left: 0; transform: none; width: 100%; }
+  }
+
 </style>
 </head>
 <body>
@@ -196,13 +206,11 @@
 </header>
 
 <div class="container">
-  <!-- Kiri: daftar stock -->
   <div class="left">
     <h3>Daftar Barang</h3>
     <div id="stockList"></div>
   </div>
 
-  <!-- Kanan: list harga + bayar -->
   <div class="right">
     <h3>Belanja</h3>
     <table>
@@ -241,129 +249,95 @@
 </div>
 
 <script>
-// Ambil stock dari localStorage
 let stock = JSON.parse(localStorage.getItem("stock")) || [];
 let cart = [];
 
-// Render daftar stock kiri
+// Render stock
 function renderStock() {
   const list = document.getElementById("stockList");
   list.innerHTML = "";
-
-  stock.forEach((item, index) => {
+  stock.forEach((item,index)=>{
     const div = document.createElement("div");
-    div.className = "item";
-    div.innerHTML = `
-      <span>${item.nama} (${item.jumlah})</span>
-      <span>
-        <button onclick="addToCart(${index})">+</button>
-        <button onclick="removeFromCart(${index})">-</button>
-      </span>
-    `;
+    div.className="item";
+    div.innerHTML=`<span>${item.nama} (${item.jumlah})</span>
+    <span>
+      <button onclick="addToCart(${index})">+</button>
+      <button onclick="removeFromCart(${index})">-</button>
+    </span>`;
     list.appendChild(div);
   });
 }
 
-// Render list harga kanan
+// Render cart
 function renderCart() {
   const tbody = document.getElementById("cartList");
-  tbody.innerHTML = "";
-  let total = 0;
-
-  cart.forEach(item => {
-    const subtotal = item.harga * item.jumlah;
-    total += subtotal;
-    tbody.innerHTML += `
-      <tr>
-        <td>${item.nama}</td>
-        <td>${item.jumlah}</td>
-        <td class="price">Rp ${subtotal.toLocaleString('id-ID')}</td>
-      </tr>
-    `;
+  tbody.innerHTML="";
+  let total=0;
+  cart.forEach(item=>{
+    const subtotal=item.harga*item.jumlah;
+    total+=subtotal;
+    tbody.innerHTML+=`<tr>
+      <td>${item.nama}</td>
+      <td>${item.jumlah}</td>
+      <td class="price">Rp ${subtotal.toLocaleString('id-ID')}</td>
+    </tr>`;
   });
-
-  document.getElementById("totalBelanja").innerText = total.toLocaleString('id-ID');
+  document.getElementById("totalBelanja").innerText=total.toLocaleString('id-ID');
 }
 
-// Tambah barang ke cart
-function addToCart(index) {
-  if (stock[index].jumlah <= 0) return;
-
-  let cartItem = cart.find(c => c.nama === stock[index].nama);
-  if (cartItem) {
-    cartItem.jumlah++;
-  } else {
-    cart.push({ ...stock[index], jumlah: 1 });
-  }
+// Tambah barang
+function addToCart(index){
+  if(stock[index].jumlah<=0)return;
+  let c=cart.find(x=>x.nama===stock[index].nama);
+  if(c){c.jumlah++;}else{cart.push({...stock[index],jumlah:1});}
   stock[index].jumlah--;
-  renderStock();
-  renderCart();
+  renderStock();renderCart();
 }
 
-// Kurangi barang dari cart
-function removeFromCart(index) {
-  let cartItem = cart.find(c => c.nama === stock[index].nama);
-  if (cartItem && cartItem.jumlah > 0) {
-    cartItem.jumlah--;
+// Kurangi barang
+function removeFromCart(index){
+  let c=cart.find(x=>x.nama===stock[index].nama);
+  if(c&&c.jumlah>0){
+    c.jumlah--;
     stock[index].jumlah++;
-    if (cartItem.jumlah === 0) {
-      cart = cart.filter(c => c.nama !== cartItem.nama);
-    }
-    renderStock();
-    renderCart();
+    if(c.jumlah===0)cart=cart.filter(x=>x.nama!==c.nama);
+    renderStock();renderCart();
   }
 }
 
-// Checkout & popup struk
-function checkout() {
-  const bayar = parseInt(document.getElementById("nominalBayar").value);
-  const total = cart.reduce((acc, cur) => acc + cur.harga * cur.jumlah, 0);
-
-  if (isNaN(bayar) || bayar < total) {
-    alert("Nominal bayar kurang atau tidak valid!");
-    return;
-  }
-
-  const kembali = bayar - total;
-
-  const tbody = document.getElementById("strukList");
-  tbody.innerHTML = "";
-
-  cart.forEach(item => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${item.nama}</td>
-        <td>${item.jumlah}</td>
-        <td class="price">Rp ${(item.harga*item.jumlah).toLocaleString('id-ID')}</td>
-      </tr>
-    `;
+// Checkout & tampilkan struk
+function checkout(){
+  const bayar=parseInt(document.getElementById("nominalBayar").value);
+  const total=cart.reduce((a,b)=>a+b.harga*b.jumlah,0);
+  if(isNaN(bayar)||bayar<total){alert("Nominal bayar kurang atau tidak valid!");return;}
+  const kembali=bayar-total;
+  const tbody=document.getElementById("strukList");
+  tbody.innerHTML="";
+  cart.forEach(item=>{
+    tbody.innerHTML+=`<tr>
+      <td>${item.nama}</td>
+      <td>${item.jumlah}</td>
+      <td class="price">Rp ${(item.harga*item.jumlah).toLocaleString('id-ID')}</td>
+    </tr>`;
   });
-
-  document.getElementById("strukTotal").innerText = total.toLocaleString('id-ID');
-  document.getElementById("strukBayar").innerText = bayar.toLocaleString('id-ID');
-  document.getElementById("strukKembali").innerText = kembali.toLocaleString('id-ID');
-
-  document.getElementById("strukPopup").style.display = "block";
-
-  // RESET cart dan input bayar supaya kosong
-  cart = [];
-  document.getElementById("nominalBayar").value = "";
-  renderStock();
-  renderCart();
+  document.getElementById("strukTotal").innerText=total.toLocaleString('id-ID');
+  document.getElementById("strukBayar").innerText=bayar.toLocaleString('id-ID');
+  document.getElementById("strukKembali").innerText=kembali.toLocaleString('id-ID');
+  document.getElementById("strukPopup").style.display="block";
+  // reset cart dan input
+  cart=[];renderStock();renderCart();
+  document.getElementById("nominalBayar").value="";
+  // fokus struk untuk print
+  setTimeout(()=>{window.print();},300);
 }
 
-function closeStruk() {
-  document.getElementById("strukPopup").style.display = "none";
+function closeStruk(){
+  document.getElementById("strukPopup").style.display="none";
 }
 
-function back() {
-  window.location.href = "dashboard.html";
-}
+function back(){window.location.href="dashboard.html";}
 
-// Render awal
-renderStock();
-renderCart();
+renderStock();renderCart();
 </script>
-
 </body>
 </html>
