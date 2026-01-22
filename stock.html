@@ -42,7 +42,7 @@ th, td {
   background: white;
   border-radius: 8px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   font-weight: bold;
 }
 .modal {
@@ -73,20 +73,10 @@ th, td {
   padding: 2px 6px;
   border-radius: 4px;
   margin: 2px;
-  position: relative;
   transition: background 0.3s;
 }
 .expired-date.highlight {
   background: #fff176; /* kuning highlight */
-}
-.expired-date button {
-  margin-left: 4px;
-  background: #f44336;
-  color: white;
-  border: none;
-  border-radius: 2px;
-  padding: 0 4px;
-  cursor: pointer;
 }
 </style>
 </head>
@@ -115,7 +105,8 @@ th, td {
 </table>
 
 <div class="summary">
-  Total Barang: <span id="totalBarang">0</span>
+  <div>Total Barang : <span id="totalBarang">0</span></div>
+  <div>Jumlah Total : Rp. <span id="totalJumlah">0</span></div>
 </div>
 </div>
 
@@ -155,20 +146,19 @@ th, td {
 if(localStorage.getItem("login")!=="true"){window.location.href="index.html";}
 
 let stock = JSON.parse(localStorage.getItem("stock")) || [];
-let currentIndexExpired = null; // untuk tambah tanggal
-let currentIndexEditExpired = null; // untuk edit tanggal
+let currentIndexExpired = null;
+let currentIndexEditExpired = null;
 
 function render(){
   const list = document.getElementById("stockList");
   list.innerHTML = "";
 
   let totalBarang = 0;
+  let totalJumlah = 0;
 
   stock.forEach((item,index)=>{
-    const expiredHtml = item.expired ? item.expired.map((date,i)=>`
-      <span class="expired-date" id="expired-${index}-${i}">
-        ${date} <button onclick="editExpired(${index},${i})">✏️</button>
-      </span>
+    const expiredHtml = item.expired ? item.expired.map((date)=>`
+      <span class="expired-date">${date}</span>
     `).join(" ") : "";
 
     list.innerHTML += `
@@ -181,14 +171,17 @@ function render(){
           <button onclick="ubah(${index},1)">+</button>
           <button onclick="ubah(${index},-1)">-</button>
           <button onclick="openModalExpired(${index})">+ Exp</button>
+          <button onclick="editExpired(${index})">Edit Exp</button>
         </td>
         <td>${expiredHtml}</td>
       </tr>
     `;
     totalBarang += item.jumlah;
+    totalJumlah += item.jumlah*item.harga;
   });
 
   document.getElementById("totalBarang").innerText = totalBarang;
+  document.getElementById("totalJumlah").innerText = totalJumlah.toLocaleString("id-ID");
   localStorage.setItem("stock", JSON.stringify(stock));
 }
 
@@ -205,8 +198,8 @@ function openModalExpired(index){
 function closeModalExpired(){document.getElementById("modalExpired").style.display="none";}
 
 // Modal Edit Expired
-function editExpired(index,dateIndex){
-  currentIndexEditExpired = {index,dateIndex};
+function editExpired(index){
+  currentIndexEditExpired = index;
   const expiredList = stock[index].expired;
   const container = document.getElementById("expiredEditList");
   container.innerHTML = "";
@@ -230,7 +223,6 @@ function tambahBarang(){
   const jumlah = parseInt(document.getElementById("jumlah").value);
 
   if(!nama || isNaN(harga) || isNaN(jumlah)){alert("Semua field wajib diisi!"); return;}
-
   stock.push({nama,harga,jumlah,expired:[]});
   closeModal();
   render();
@@ -240,10 +232,7 @@ function tambahBarang(){
 function ubah(index,nilai){
   if(stock[index].jumlah+nilai<0) return;
   stock[index].jumlah += nilai;
-
-  if(stock[index].jumlah === 0){
-    if(confirm("Hapus barang ini?")) stock.splice(index,1);
-  }
+  if(stock[index].jumlah === 0){if(confirm("Hapus barang ini?")) stock.splice(index,1);}
   render();
 }
 
@@ -256,36 +245,23 @@ function simpanExpired(){
 
   // Highlight animasi
   setTimeout(()=>{
-    const index = currentIndexExpired;
-    const last = stock[index].expired.length-1;
-    const el = document.getElementById(`expired-${index}-${last}`);
-    if(el){el.classList.add("highlight"); setTimeout(()=>el.classList.remove("highlight"),500);}
+    render();
   },50);
 
   closeModalExpired();
-  render();
 }
 
 // Update expired
 function updateExpired(i){
   const val = document.getElementById(`editExpiredInput-${i}`).value.trim();
   if(!val){alert("Tanggal tidak boleh kosong"); return;}
-  const idx = currentIndexEditExpired.index;
-  stock[idx].expired[i] = val;
-
-  // Highlight animasi
-  setTimeout(()=>{
-    const el = document.getElementById(`expired-${idx}-${i}`);
-    if(el){el.classList.add("highlight"); setTimeout(()=>el.classList.remove("highlight"),500);}
-  },50);
-
+  stock[currentIndexEditExpired].expired[i] = val;
   render();
 }
 
 // Hapus expired
 function hapusExpired(i){
-  const idx = currentIndexEditExpired.index;
-  stock[idx].expired.splice(i,1);
+  stock[currentIndexEditExpired].expired.splice(i,1);
   render();
 }
 
