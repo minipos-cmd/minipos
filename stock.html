@@ -41,6 +41,16 @@
       text-align: center;
     }
 
+    .summary {
+      margin-top: 15px;
+      padding: 10px;
+      background: white;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+    }
+
     .modal {
       display: none;
       position: fixed;
@@ -88,6 +98,12 @@
     </thead>
     <tbody id="stockList"></tbody>
   </table>
+
+  <!-- Summary -->
+  <div class="summary">
+    <div>Jumlah Barang: <span id="totalBarang">0</span></div>
+    <div>Total Untung Perkiraan: Rp <span id="totalUntung">0</span></div>
+  </div>
 </div>
 
 <div class="modal" id="modal">
@@ -101,7 +117,76 @@
   </div>
 </div>
 
-<script src="js/stock.js"></script>
+<script>
+// Proteksi login
+if(localStorage.getItem("login")!=="true"){window.location.href="index.html";}
+
+let stock=JSON.parse(localStorage.getItem("stock"))||[];
+
+// Render tabel dan summary
+function render(){
+  const list=document.getElementById("stockList");
+  list.innerHTML="";
+
+  let totalBarang=0;
+  let totalUntung=0;
+
+  stock.forEach((item,index)=>{
+    list.innerHTML+=`
+      <tr>
+        <td>${index+1}</td>
+        <td>${item.nama}</td>
+        <td>Rp ${item.harga.toLocaleString('id-ID')}</td>
+        <td>${item.jumlah}</td>
+        <td>
+          <button onclick="ubah(${index},1)">+</button>
+          <button onclick="ubah(${index},-1)">-</button>
+        </td>
+      </tr>
+    `;
+    totalBarang+=item.jumlah;
+    totalUntung+=Math.round(item.harga*0.3*item.jumlah); // untung 30% dari harga jual
+  });
+
+  document.getElementById("totalBarang").innerText=totalBarang;
+  document.getElementById("totalUntung").innerText=totalUntung.toLocaleString('id-ID');
+
+  localStorage.setItem("stock",JSON.stringify(stock));
+}
+
+// Modal
+function openModal(){document.getElementById("modal").style.display="flex";}
+function closeModal(){document.getElementById("modal").style.display="none"; document.getElementById("nama").value=""; document.getElementById("harga").value=""; document.getElementById("jumlah").value="";}
+
+// Tambah barang
+function tambahBarang(){
+  const nama=document.getElementById("nama").value.trim();
+  const harga=parseInt(document.getElementById("harga").value);
+  const jumlah=parseInt(document.getElementById("jumlah").value);
+
+  if(!nama||isNaN(harga)||isNaN(jumlah)){alert("Semua field wajib diisi!"); return;}
+
+  stock.push({nama,harga,jumlah});
+  closeModal();
+  render();
+}
+
+// Ubah jumlah
+function ubah(index,nilai){
+  if(stock[index].jumlah+nilai<0) return;
+  stock[index].jumlah+=nilai;
+
+  if(stock[index].jumlah===0){
+    if(confirm("Hapus barang ini?")) stock.splice(index,1);
+  }
+
+  render();
+}
+
+function back(){window.location.href="dashboard.html";}
+
+render();
+</script>
 
 </body>
 </html>
