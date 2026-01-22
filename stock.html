@@ -24,8 +24,9 @@
     }
 
     button {
-      padding: 8px 15px;
+      padding: 6px 12px;
       cursor: pointer;
+      margin: 2px;
     }
 
     table {
@@ -47,7 +48,7 @@
       background: white;
       border-radius: 8px;
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       font-weight: bold;
     }
 
@@ -66,6 +67,7 @@
       padding: 20px;
       width: 320px;
       border-radius: 8px;
+      text-align: center;
     }
 
     .modal-content input {
@@ -94,6 +96,7 @@
         <th>Harga</th>
         <th>Jumlah</th>
         <th>Aksi</th>
+        <th>Expired</th>
       </tr>
     </thead>
     <tbody id="stockList"></tbody>
@@ -101,11 +104,11 @@
 
   <!-- Summary -->
   <div class="summary">
-    <div>Jumlah Barang: <span id="totalBarang">0</span></div>
-    <div>Total Untung Perkiraan: Rp <span id="totalUntung">0</span></div>
+    Total Barang: <span id="totalBarang">0</span>
   </div>
 </div>
 
+<!-- Modal Tambah Barang -->
 <div class="modal" id="modal">
   <div class="modal-content">
     <h3>Tambah Barang</h3>
@@ -117,22 +120,32 @@
   </div>
 </div>
 
+<!-- Modal Tambah Expired -->
+<div class="modal" id="modalExpired">
+  <div class="modal-content">
+    <h3>Tambah Expired</h3>
+    <input type="text" id="expiredInput" placeholder="DD,MM,YYYY">
+    <button onclick="simpanExpired()">Simpan</button>
+    <button onclick="closeModalExpired()">Batal</button>
+  </div>
+</div>
+
 <script>
 // Proteksi login
 if(localStorage.getItem("login")!=="true"){window.location.href="index.html";}
 
-let stock=JSON.parse(localStorage.getItem("stock"))||[];
+let stock = JSON.parse(localStorage.getItem("stock")) || [];
+let currentIndexExpired = null; // untuk menyimpan indeks barang yang mau ditambah expired
 
-// Render tabel dan summary
 function render(){
-  const list=document.getElementById("stockList");
-  list.innerHTML="";
+  const list = document.getElementById("stockList");
+  list.innerHTML = "";
 
-  let totalBarang=0;
-  let totalUntung=0;
+  let totalBarang = 0;
 
   stock.forEach((item,index)=>{
-    list.innerHTML+=`
+    const expiredStr = item.expired ? item.expired.join(" | ") : "";
+    list.innerHTML += `
       <tr>
         <td>${index+1}</td>
         <td>${item.nama}</td>
@@ -141,32 +154,40 @@ function render(){
         <td>
           <button onclick="ubah(${index},1)">+</button>
           <button onclick="ubah(${index},-1)">-</button>
+          <button onclick="openModalExpired(${index})">+ Exp</button>
         </td>
+        <td>${expiredStr}</td>
       </tr>
     `;
-    totalBarang+=item.jumlah;
-    totalUntung+=Math.round(item.harga*0.3*item.jumlah); // untung 30% dari harga jual
+    totalBarang += item.jumlah;
   });
 
-  document.getElementById("totalBarang").innerText=totalBarang;
-  document.getElementById("totalUntung").innerText=totalUntung.toLocaleString('id-ID');
+  document.getElementById("totalBarang").innerText = totalBarang;
 
-  localStorage.setItem("stock",JSON.stringify(stock));
+  localStorage.setItem("stock", JSON.stringify(stock));
 }
 
-// Modal
+// Modal Barang
 function openModal(){document.getElementById("modal").style.display="flex";}
 function closeModal(){document.getElementById("modal").style.display="none"; document.getElementById("nama").value=""; document.getElementById("harga").value=""; document.getElementById("jumlah").value="";}
 
-// Tambah barang
+// Modal Expired
+function openModalExpired(index){
+  currentIndexExpired = index;
+  document.getElementById("expiredInput").value = "";
+  document.getElementById("modalExpired").style.display = "flex";
+}
+function closeModalExpired(){document.getElementById("modalExpired").style.display = "none";}
+
+// Tambah Barang
 function tambahBarang(){
-  const nama=document.getElementById("nama").value.trim();
-  const harga=parseInt(document.getElementById("harga").value);
-  const jumlah=parseInt(document.getElementById("jumlah").value);
+  const nama = document.getElementById("nama").value.trim();
+  const harga = parseInt(document.getElementById("harga").value);
+  const jumlah = parseInt(document.getElementById("jumlah").value);
 
-  if(!nama||isNaN(harga)||isNaN(jumlah)){alert("Semua field wajib diisi!"); return;}
+  if(!nama || isNaN(harga) || isNaN(jumlah)){alert("Semua field wajib diisi!"); return;}
 
-  stock.push({nama,harga,jumlah});
+  stock.push({nama,harga,jumlah,expired:[]});
   closeModal();
   render();
 }
@@ -174,12 +195,22 @@ function tambahBarang(){
 // Ubah jumlah
 function ubah(index,nilai){
   if(stock[index].jumlah+nilai<0) return;
-  stock[index].jumlah+=nilai;
+  stock[index].jumlah += nilai;
 
-  if(stock[index].jumlah===0){
+  if(stock[index].jumlah === 0){
     if(confirm("Hapus barang ini?")) stock.splice(index,1);
   }
 
+  render();
+}
+
+// Simpan expired
+function simpanExpired(){
+  const val = document.getElementById("expiredInput").value.trim();
+  if(!val){alert("Tanggal tidak boleh kosong"); return;}
+  if(!stock[currentIndexExpired].expired) stock[currentIndexExpired].expired = [];
+  stock[currentIndexExpired].expired.push(val);
+  closeModalExpired();
   render();
 }
 
