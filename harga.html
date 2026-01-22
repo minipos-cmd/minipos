@@ -1,104 +1,135 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>MiniPOS - Kasir</title>
+<meta charset="UTF-8">
+<title>MiniPOS - Kasir</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+}
 
-    header {
-      background: #4CAF50;
-      color: white;
-      padding: 15px 20px;
-    }
+header {
+  background: #4CAF50;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-    .container {
-      display: flex;
-      padding: 20px;
-      gap: 20px;
-    }
+.container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
 
-    .box {
-      background: white;
-      padding: 15px;
-      flex: 1;
-      border-radius: 8px;
-    }
+.left, .right {
+  background: white;
+  padding: 15px;
+  flex: 1;
+  border-radius: 8px;
+}
 
-    .divider {
-      width: 2px;
-      background: #ddd;
-    }
+.divider {
+  width: 2px;
+  background: #ddd;
+}
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
 
-    th, td {
-      padding: 8px;
-      border-bottom: 1px solid #ddd;
-      text-align: center;
-    }
+.card {
+  border: 1px solid #ddd;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+}
 
-    button {
-      padding: 5px 10px;
-      cursor: pointer;
-    }
+.card button {
+  margin-top: 10px;
+  padding: 8px;
+  width: 100%;
+}
 
-    .total {
-      font-weight: bold;
-      margin-top: 10px;
-    }
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-    input {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      box-sizing: border-box;
-    }
-  </style>
+th, td {
+  border-bottom: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.total {
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+}
+
+/* POPUP */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  width: 350px;
+  border-radius: 10px;
+  animation: pop .3s ease;
+}
+
+@keyframes pop {
+  from { transform: scale(.7); opacity: 0 }
+  to { transform: scale(1); opacity: 1 }
+}
+</style>
 </head>
+
 <body>
 
 <header>
   <h2>Kasir</h2>
+  <button onclick="back()">⬅ Dashboard</button>
 </header>
 
 <div class="container">
 
-  <!-- KIRI: STOK -->
-  <div class="box">
+  <!-- KIRI -->
+  <div class="left">
     <h3>Daftar Barang</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Nama</th>
-          <th>Stok</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="barangList"></tbody>
-    </table>
+    <div class="grid" id="barangList"></div>
   </div>
 
   <div class="divider"></div>
 
-  <!-- KANAN: KASIR -->
-  <div class="box">
+  <!-- KANAN -->
+  <div class="right">
     <h3>Keranjang</h3>
     <table>
       <thead>
         <tr>
           <th>Barang</th>
           <th>Qty</th>
-          <th>Harga</th>
+          <th>Aksi</th>
           <th>Total</th>
         </tr>
       </thead>
@@ -107,14 +138,21 @@
 
     <p class="total">Total: Rp <span id="grandTotal">0</span></p>
 
-    <label>Uang Bayar</label>
-    <input type="number" id="bayar">
-
-    <button onclick="hitung()">Hitung</button>
-
-    <p class="total">Kembalian: Rp <span id="kembalian">0</span></p>
+    <input type="number" id="bayar" placeholder="Uang Bayar">
+    <button onclick="bayar()">Bayar</button>
   </div>
+</div>
 
+<!-- POPUP STRUK -->
+<div class="modal" id="popup">
+  <div class="modal-content">
+    <h3>Struk Belanja</h3>
+    <div id="strukList"></div>
+    <p>Total: Rp <span id="strukTotal"></span></p>
+    <p>Bayar: Rp <span id="strukBayar"></span></p>
+    <p>Kembali: Rp <span id="strukKembali"></span></p>
+    <button onclick="closePopup()">Selesai</button>
+  </div>
 </div>
 
 <script src="js/harga.js"></script>
