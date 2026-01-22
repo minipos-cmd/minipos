@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard Kasir</title>
+</head>
+<body>
+  <h1>Dashboard</h1>
+
+  <ul>
+    <li><a href="harga.html">List Harga</a></li>
+    <li><a href="stok.html">Stok Barang</a></li>
+    <li><button onclick="logout()">Logout</button></li>
+  </ul>
+
+  <script>
+    if (localStorage.getItem("login") !== "true") {
+      window.location.href = "index.html";
+    }
+
+    function logout() {
+      localStorage.removeItem("login");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
