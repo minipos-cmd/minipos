@@ -40,7 +40,6 @@
     gap: 20px;
   }
 
-  /* Kiri & kanan */
   .left, .right {
     flex: 1;
     background: white;
@@ -48,19 +47,24 @@
     border-radius: 8px;
     max-height: 70vh;
     overflow-y: auto;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
 
   h3 {
     margin-top: 0;
   }
 
-  /* Daftar barang kiri */
   .item {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 8px 0;
     border-bottom: 1px solid #eee;
+    transition: background 0.2s;
+  }
+
+  .item:hover {
+    background-color: #f9f9f9;
   }
 
   .item button {
@@ -79,7 +83,6 @@
     background-color: #45a049;
   }
 
-  /* Daftar harga kanan */
   table {
     width: 100%;
     border-collapse: collapse;
@@ -100,7 +103,6 @@
     font-family: monospace;
   }
 
-  /* Input nominal bayar */
   .input-bayar {
     width: 100%;
     padding: 10px 12px;
@@ -140,7 +142,7 @@
     display: none;
     position: fixed;
     top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(0.8);
     background: #fff;
     border-radius: 10px;
     padding: 20px;
@@ -150,6 +152,14 @@
     text-align: center;
     font-family: Arial, sans-serif;
     z-index: 9999;
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  .popup.show {
+    display: block;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
   }
 
   .popup h2 {
@@ -174,6 +184,19 @@
     text-align: right;
   }
 
+  .popup p {
+    margin: 5px 0;
+    font-weight: bold;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  .popup.show p {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
   .popup button {
     margin-top: 15px;
     padding: 8px 12px;
@@ -183,17 +206,11 @@
     background-color: #4CAF50;
     color: white;
     font-weight: bold;
+    transition: 0.2s;
   }
 
   .popup button:hover {
     background-color: #45a049;
-  }
-
-  /* Print only struk */
-  @media print {
-    body * { visibility: hidden; }
-    .popup, .popup * { visibility: visible; }
-    .popup { position: absolute; top: 0; left: 0; transform: none; width: 100%; }
   }
 
 </style>
@@ -229,7 +246,6 @@
   </div>
 </div>
 
-<!-- Popup struk -->
 <div class="popup" id="strukPopup">
   <h2>Struk Belanja</h2>
   <table>
@@ -323,16 +339,19 @@ function checkout(){
   document.getElementById("strukTotal").innerText=total.toLocaleString('id-ID');
   document.getElementById("strukBayar").innerText=bayar.toLocaleString('id-ID');
   document.getElementById("strukKembali").innerText=kembali.toLocaleString('id-ID');
-  document.getElementById("strukPopup").style.display="block";
+
+  // show popup dengan animasi
+  const popup=document.getElementById("strukPopup");
+  popup.classList.add("show");
+
   // reset cart dan input
   cart=[];renderStock();renderCart();
   document.getElementById("nominalBayar").value="";
-  // fokus struk untuk print
-  setTimeout(()=>{window.print();},300);
 }
 
 function closeStruk(){
-  document.getElementById("strukPopup").style.display="none";
+  const popup=document.getElementById("strukPopup");
+  popup.classList.remove("show");
 }
 
 function back(){window.location.href="dashboard.html";}
