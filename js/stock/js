@@ -3,13 +3,13 @@ if (localStorage.getItem("login") !== "true") {
   window.location.href = "index.html";
 }
 
-let stok = JSON.parse(localStorage.getItem("stok")) || [];
+let stock = JSON.parse(localStorage.getItem("stock")) || [];
 
 function render() {
-  const list = document.getElementById("stokList");
+  const list = document.getElementById("stockList");
   list.innerHTML = "";
 
-  stok.forEach((item, index) => {
+  stock.forEach((item, index) => {
     list.innerHTML += `
       <tr>
         <td>${index + 1}</td>
@@ -24,7 +24,7 @@ function render() {
     `;
   });
 
-  localStorage.setItem("stok", JSON.stringify(stok));
+  localStorage.setItem("stock", JSON.stringify(stock));
 }
 
 // Modal
@@ -50,19 +50,19 @@ function tambahBarang() {
     return;
   }
 
-  stok.push({ nama, harga, jumlah });
+  stock.push({ nama, harga, jumlah });
   closeModal();
   render();
 }
 
 // Ubah jumlah
 function ubah(index, nilai) {
-  if (stok[index].jumlah + nilai < 0) return;
-  stok[index].jumlah += nilai;
+  if (stock[index].jumlah + nilai < 0) return;
+  stock[index].jumlah += nilai;
 
-  if (stok[index].jumlah === 0) {
+  if (stock[index].jumlah === 0) {
     if (confirm("Hapus barang ini?")) {
-      stok.splice(index, 1);
+      stock.splice(index, 1);
     }
   }
 
