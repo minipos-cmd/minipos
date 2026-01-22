@@ -3,10 +3,14 @@ if (localStorage.getItem("login") !== "true") {
   window.location.href = "index.html";
 }
 
+// konsisten: gunakan key "stock"
 let stock = JSON.parse(localStorage.getItem("stock")) || [];
 
+// Render tabel
 function render() {
-  const list = document.getElementById("stockList");
+  const list = document.getElementById("stockList"); // sama dengan HTML
+  if (!list) return;
+
   list.innerHTML = "";
 
   stock.forEach((item, index) => {
@@ -70,7 +74,8 @@ function ubah(index, nilai) {
 }
 
 function back() {
-  window.location.href = "dashboard.html"; // sesuaikan path
+  window.location.href = "dashboard.html";
 }
 
+// render pertama kali
 render();
