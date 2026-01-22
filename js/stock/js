@@ -5,7 +5,6 @@ if (localStorage.getItem("login") !== "true") {
 
 let stok = JSON.parse(localStorage.getItem("stok")) || [];
 
-// Render tabel
 function render() {
   const list = document.getElementById("stokList");
   list.innerHTML = "";
@@ -35,6 +34,9 @@ function openModal() {
 
 function closeModal() {
   document.getElementById("modal").style.display = "none";
+  document.getElementById("nama").value = "";
+  document.getElementById("harga").value = "";
+  document.getElementById("jumlah").value = "";
 }
 
 // Tambah barang
@@ -49,25 +51,26 @@ function tambahBarang() {
   }
 
   stok.push({ nama, harga, jumlah });
-
   closeModal();
   render();
-
-  // reset input
-  document.getElementById("nama").value = "";
-  document.getElementById("harga").value = "";
-  document.getElementById("jumlah").value = "";
 }
 
 // Ubah jumlah
 function ubah(index, nilai) {
+  if (stok[index].jumlah + nilai < 0) return;
   stok[index].jumlah += nilai;
-  if (stok[index].jumlah <= 0) stok.splice(index, 1);
+
+  if (stok[index].jumlah === 0) {
+    if (confirm("Hapus barang ini?")) {
+      stok.splice(index, 1);
+    }
+  }
+
   render();
 }
 
 function back() {
-  window.location.href = "dashboard.html";
+  window.location.href = "dashboard.html"; // sesuaikan path
 }
 
 render();
