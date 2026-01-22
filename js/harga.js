@@ -2,59 +2,63 @@ let stok = JSON.parse(localStorage.getItem("stok")) || [];
 let cart = [];
 
 function renderStok() {
-  const list = document.getElementById("barangList");
-  list.innerHTML = "";
+  const el = document.getElementById("barangList");
+  el.innerHTML = "";
 
-  stok.forEach((item, index) => {
-    list.innerHTML += `
-      <tr>
-        <td>${item.nama}</td>
-        <td>${item.jumlah}</td>
-        <td>
-          <button onclick="tambahKeCart(${index})">➜</button>
-        </td>
-      </tr>
+  stok.forEach((item, i) => {
+    el.innerHTML += `
+      <div class="card">
+        <h4>${item.nama}</h4>
+        <p>(${item.jumlah})</p>
+        <button ${item.jumlah === 0 ? "disabled" : ""} 
+          onclick="tambah(${i})">TAMBAH</button>
+      </div>
     `;
   });
 }
 
-function tambahKeCart(index) {
-  if (stok[index].jumlah <= 0) return;
+function tambah(i) {
+  if (stok[i].jumlah <= 0) return;
 
-  let item = cart.find(i => i.nama === stok[index].nama);
+  let item = cart.find(c => c.nama === stok[i].nama);
+  if (item) item.qty++;
+  else cart.push({ nama: stok[i].nama, harga: stok[i].harga, qty: 1 });
 
-  if (item) {
-    item.qty++;
-  } else {
-    cart.push({
-      nama: stok[index].nama,
-      harga: stok[index].harga,
-      qty: 1
-    });
-  }
+  stok[i].jumlah--;
+  save();
+}
 
-  stok[index].jumlah--;
-  localStorage.setItem("stok", JSON.stringify(stok));
+function kurang(nama) {
+  let item = cart.find(c => c.nama === nama);
+  let stokItem = stok.find(s => s.nama === nama);
 
-  renderStok();
-  renderCart();
+  item.qty--;
+  stokItem.jumlah++;
+
+  if (item.qty <= 0)
+    cart = cart.filter(c => c.nama !== nama);
+
+  save();
 }
 
 function renderCart() {
-  const list = document.getElementById("cartList");
-  list.innerHTML = "";
+  const el = document.getElementById("cartList");
+  el.innerHTML = "";
   let total = 0;
 
-  cart.forEach(item => {
-    const subtotal = item.harga * item.qty;
-    total += subtotal;
+  cart.forEach(c => {
+    let sub = c.harga * c.qty;
+    total += sub;
 
-    list.innerHTML += `
+    el.innerHTML += `
       <tr>
-        <td>${item.nama}</td>
-        <td>${item.qty}</td>
-        <td>Rp ${item.harga.toLocaleString("id-ID")}</td>
-        <td>Rp ${subtotal.toLocaleString("id-ID")}</td>
+        <td>${c.nama}</td>
+        <td>${c.qty}</td>
+        <td>
+          <button onclick="tambahByName('${c.nama}')">+</button>
+          <button onclick="kurang('${c.nama}')">-</button>
+        </td>
+        <td>Rp ${sub.toLocaleString("id-ID")}</td>
       </tr>
     `;
   });
@@ -63,17 +67,41 @@ function renderCart() {
     total.toLocaleString("id-ID");
 }
 
-function hitung() {
-  const bayar = parseInt(document.getElementById("bayar").value) || 0;
-  let total = cart.reduce((sum, i) => sum + i.harga * i.qty, 0);
+function tambahByName(nama) {
+  let index = stok.findIndex(s => s.nama === nama);
+  tambah(index);
+}
 
-  if (bayar < total) {
-    alert("Uang kurang!");
-    return;
-  }
+function bayar() {
+  let uang = parseInt(document.getElementById("bayar").value);
+  let total = cart.reduce((s, i) => s + i.harga * i.qty, 0);
 
-  document.getElementById("kembalian").innerText =
-    (bayar - total).toLocaleString("id-ID");
+  if (uang < total) return alert("Uang kurang!");
+
+  document.getElementById("popup").style.display = "flex";
+  document.getElementById("strukList").innerHTML =
+    cart.map(i => `${i.nama} x${i.qty}`).join("<br>");
+
+  document.getElementById("strukTotal").innerText = total.toLocaleString("id-ID");
+  document.getElementById("strukBayar").innerText = uang.toLocaleString("id-ID");
+  document.getElementById("strukKembali").innerText =
+    (uang - total).toLocaleString("id-ID");
+}
+
+function closePopup() {
+  cart = [];
+  document.getElementById("popup").style.display = "none";
+  save();
+}
+
+function save() {
+  localStorage.setItem("stok", JSON.stringify(stok));
+  renderStok();
+  renderCart();
+}
+
+function back() {
+  window.location.href = "dashboard.html";
 }
 
 renderStok();
