@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>MiniPOS - Kasir</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+    }
+
+    header {
+      background: #4CAF50;
+      color: white;
+      padding: 15px 20px;
+    }
+
+    .container {
+      display: flex;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    .box {
+      background: white;
+      padding: 15px;
+      flex: 1;
+      border-radius: 8px;
+    }
+
+    .divider {
+      width: 2px;
+      background: #ddd;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+
+    button {
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    .total {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h2>Kasir</h2>
+</header>
+
+<div class="container">
+
+  <!-- KIRI: STOK -->
+  <div class="box">
+    <h3>Daftar Barang</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Nama</th>
+          <th>Stok</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="barangList"></tbody>
+    </table>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- KANAN: KASIR -->
+  <div class="box">
+    <h3>Keranjang</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Barang</th>
+          <th>Qty</th>
+          <th>Harga</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="cartList"></tbody>
+    </table>
+
+    <p class="total">Total: Rp <span id="grandTotal">0</span></p>
+
+    <label>Uang Bayar</label>
+    <input type="number" id="bayar">
+
+    <button onclick="hitung()">Hitung</button>
+
+    <p class="total">Kembalian: Rp <span id="kembalian">0</span></p>
+  </div>
+
+</div>
+
+<script src="js/harga.js"></script>
+</body>
+</html>
