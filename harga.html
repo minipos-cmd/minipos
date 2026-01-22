@@ -2,159 +2,368 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>MiniPOS - Kasir</title>
-
+<title>MiniPOS - Harga</title>
 <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f4f4f4;
-}
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+  }
 
-header {
-  background: #4CAF50;
-  color: white;
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+  header {
+    background-color: #4CAF50;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-.container {
-  display: flex;
-  gap: 20px;
-  padding: 20px;
-}
+  header button {
+    padding: 8px 15px;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    background-color: #fff;
+    color: #4CAF50;
+    font-weight: bold;
+    transition: 0.2s;
+  }
 
-.left, .right {
-  background: white;
-  padding: 15px;
-  flex: 1;
-  border-radius: 8px;
-}
+  header button:hover {
+    background-color: #e0e0e0;
+  }
 
-.divider {
-  width: 2px;
-  background: #ddd;
-}
+  .container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+  }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-}
+  /* Kiri & kanan */
+  .left, .right {
+    flex: 1;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
 
-.card {
-  border: 1px solid #ddd;
-  padding: 15px;
-  border-radius: 8px;
-  text-align: center;
-}
+  h3 {
+    margin-top: 0;
+  }
 
-.card button {
-  margin-top: 10px;
-  padding: 8px;
-  width: 100%;
-}
+  /* Daftar barang kiri */
+  .item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+  }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
+  .item button {
+    padding: 5px 10px;
+    margin-left: 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+    transition: 0.2s;
+  }
 
-th, td {
-  border-bottom: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
-}
+  .item button:hover {
+    background-color: #45a049;
+  }
 
-.total {
-  font-weight: bold;
-  margin-top: 10px;
-}
+  /* Daftar harga kanan */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
 
-input {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-}
+  th, td {
+    padding: 8px;
+    border-bottom: 1px solid #ccc;
+  }
 
-/* POPUP */
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.5);
-  justify-content: center;
-  align-items: center;
-}
+  th {
+    background-color: #f0f0f0;
+  }
 
-.modal-content {
-  background: white;
-  padding: 20px;
-  width: 350px;
-  border-radius: 10px;
-  animation: pop .3s ease;
-}
+  td.price {
+    text-align: right;
+    font-family: monospace;
+  }
 
-@keyframes pop {
-  from { transform: scale(.7); opacity: 0 }
-  to { transform: scale(1); opacity: 1 }
-}
+  /* Input nominal bayar */
+  .input-bayar {
+    width: 100%;
+    padding: 10px 12px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: border 0.2s, box-shadow 0.2s;
+  }
+
+  .input-bayar:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+  }
+
+  button.checkout {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  button.checkout:hover {
+    background-color: #45a049;
+  }
+
+  /* Popup struk */
+  .popup {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    width: 320px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    text-align: center;
+    font-family: Arial, sans-serif;
+  }
+
+  .popup h2 {
+    margin-top: 0;
+    font-size: 20px;
+  }
+
+  .popup table {
+    width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
+  }
+
+  .popup th, .popup td {
+    border-bottom: 1px solid #ddd;
+    padding: 5px;
+    font-size: 14px;
+  }
+
+  .popup td.price {
+    text-align: right;
+  }
+
+  .popup button {
+    margin-top: 15px;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 6px;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+  }
+
+  .popup button:hover {
+    background-color: #45a049;
+  }
+
 </style>
 </head>
-
 <body>
 
 <header>
-  <h2>Kasir</h2>
+  <h2>Harga Barang</h2>
   <button onclick="back()">⬅ Dashboard</button>
 </header>
 
 <div class="container">
-
-  <!-- KIRI -->
+  <!-- Kiri: daftar stock -->
   <div class="left">
     <h3>Daftar Barang</h3>
-    <div class="grid" id="barangList"></div>
+    <div id="stockList"></div>
   </div>
 
-  <div class="divider"></div>
-
-  <!-- KANAN -->
+  <!-- Kanan: list harga + bayar -->
   <div class="right">
-    <h3>Keranjang</h3>
+    <h3>Belanja</h3>
     <table>
       <thead>
         <tr>
           <th>Barang</th>
-          <th>Qty</th>
-          <th>Aksi</th>
-          <th>Total</th>
+          <th>Jumlah</th>
+          <th>Subtotal</th>
         </tr>
       </thead>
       <tbody id="cartList"></tbody>
     </table>
-
-    <p class="total">Total: Rp <span id="grandTotal">0</span></p>
-
-    <input type="number" id="bayar" placeholder="Uang Bayar">
-    <button onclick="bayar()">Bayar</button>
+    <p>Total: Rp <span id="totalBelanja">0</span></p>
+    <input type="number" id="nominalBayar" placeholder="Masukkan nominal bayar" class="input-bayar">
+    <button class="checkout" onclick="checkout()">Bayar</button>
   </div>
 </div>
 
-<!-- POPUP STRUK -->
-<div class="modal" id="popup">
-  <div class="modal-content">
-    <h3>Struk Belanja</h3>
-    <div id="strukList"></div>
-    <p>Total: Rp <span id="strukTotal"></span></p>
-    <p>Bayar: Rp <span id="strukBayar"></span></p>
-    <p>Kembali: Rp <span id="strukKembali"></span></p>
-    <button onclick="closePopup()">Selesai</button>
-  </div>
+<!-- Popup struk -->
+<div class="popup" id="strukPopup">
+  <h2>Struk Belanja</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Barang</th>
+        <th>Jumlah</th>
+        <th>Subtotal</th>
+      </tr>
+    </thead>
+    <tbody id="strukList"></tbody>
+  </table>
+  <p>Total: Rp <span id="strukTotal">0</span></p>
+  <p>Bayar: Rp <span id="strukBayar">0</span></p>
+  <p>Kembalian: Rp <span id="strukKembali">0</span></p>
+  <button onclick="closeStruk()">Tutup</button>
 </div>
 
-<script src="js/harga.js"></script>
+<script>
+// Ambil stock dari localStorage
+let stock = JSON.parse(localStorage.getItem("stock")) || [];
+let cart = [];
+
+// Render daftar stock kiri
+function renderStock() {
+  const list = document.getElementById("stockList");
+  list.innerHTML = "";
+
+  stock.forEach((item, index) => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `
+      <span>${item.nama} (${item.jumlah})</span>
+      <span>
+        <button onclick="addToCart(${index})">+</button>
+        <button onclick="removeFromCart(${index})">-</button>
+      </span>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// Render list harga kanan
+function renderCart() {
+  const tbody = document.getElementById("cartList");
+  tbody.innerHTML = "";
+  let total = 0;
+
+  cart.forEach(item => {
+    const subtotal = item.harga * item.jumlah;
+    total += subtotal;
+    tbody.innerHTML += `
+      <tr>
+        <td>${item.nama}</td>
+        <td>${item.jumlah}</td>
+        <td class="price">Rp ${subtotal.toLocaleString('id-ID')}</td>
+      </tr>
+    `;
+  });
+
+  document.getElementById("totalBelanja").innerText = total.toLocaleString('id-ID');
+}
+
+// Tambah barang ke cart
+function addToCart(index) {
+  if (stock[index].jumlah <= 0) return;
+
+  let cartItem = cart.find(c => c.nama === stock[index].nama);
+  if (cartItem) {
+    cartItem.jumlah++;
+  } else {
+    cart.push({ ...stock[index], jumlah: 1 });
+  }
+  stock[index].jumlah--;
+  renderStock();
+  renderCart();
+}
+
+// Kurangi barang dari cart
+function removeFromCart(index) {
+  let cartItem = cart.find(c => c.nama === stock[index].nama);
+  if (cartItem && cartItem.jumlah > 0) {
+    cartItem.jumlah--;
+    stock[index].jumlah++;
+    if (cartItem.jumlah === 0) {
+      cart = cart.filter(c => c.nama !== cartItem.nama);
+    }
+    renderStock();
+    renderCart();
+  }
+}
+
+// Checkout & popup struk
+function checkout() {
+  const bayar = parseInt(document.getElementById("nominalBayar").value);
+  const total = cart.reduce((acc, cur) => acc + cur.harga * cur.jumlah, 0);
+
+  if (isNaN(bayar) || bayar < total) {
+    alert("Nominal bayar kurang atau tidak valid!");
+    return;
+  }
+
+  const kembali = bayar - total;
+
+  const tbody = document.getElementById("strukList");
+  tbody.innerHTML = "";
+
+  cart.forEach(item => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${item.nama}</td>
+        <td>${item.jumlah}</td>
+        <td class="price">Rp ${(item.harga*item.jumlah).toLocaleString('id-ID')}</td>
+      </tr>
+    `;
+  });
+
+  document.getElementById("strukTotal").innerText = total.toLocaleString('id-ID');
+  document.getElementById("strukBayar").innerText = bayar.toLocaleString('id-ID');
+  document.getElementById("strukKembali").innerText = kembali.toLocaleString('id-ID');
+
+  document.getElementById("strukPopup").style.display = "block";
+
+  // RESET cart dan input bayar supaya kosong
+  cart = [];
+  document.getElementById("nominalBayar").value = "";
+  renderStock();
+  renderCart();
+}
+
+function closeStruk() {
+  document.getElementById("strukPopup").style.display = "none";
+}
+
+function back() {
+  window.location.href = "dashboard.html";
+}
+
+// Render awal
+renderStock();
+renderCart();
+</script>
+
 </body>
 </html>
