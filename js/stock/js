@@ -1,0 +1,73 @@
+// Proteksi login
+if (localStorage.getItem("login") !== "true") {
+  window.location.href = "index.html";
+}
+
+let stok = JSON.parse(localStorage.getItem("stok")) || [];
+
+// Render tabel
+function render() {
+  const list = document.getElementById("stokList");
+  list.innerHTML = "";
+
+  stok.forEach((item, index) => {
+    list.innerHTML += `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${item.nama}</td>
+        <td>Rp ${item.harga.toLocaleString("id-ID")}</td>
+        <td>${item.jumlah}</td>
+        <td>
+          <button onclick="ubah(${index}, 1)">+</button>
+          <button onclick="ubah(${index}, -1)">-</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  localStorage.setItem("stok", JSON.stringify(stok));
+}
+
+// Modal
+function openModal() {
+  document.getElementById("modal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
+}
+
+// Tambah barang
+function tambahBarang() {
+  const nama = document.getElementById("nama").value.trim();
+  const harga = parseInt(document.getElementById("harga").value);
+  const jumlah = parseInt(document.getElementById("jumlah").value);
+
+  if (!nama || isNaN(harga) || isNaN(jumlah)) {
+    alert("Semua field wajib diisi!");
+    return;
+  }
+
+  stok.push({ nama, harga, jumlah });
+
+  closeModal();
+  render();
+
+  // reset input
+  document.getElementById("nama").value = "";
+  document.getElementById("harga").value = "";
+  document.getElementById("jumlah").value = "";
+}
+
+// Ubah jumlah
+function ubah(index, nilai) {
+  stok[index].jumlah += nilai;
+  if (stok[index].jumlah <= 0) stok.splice(index, 1);
+  render();
+}
+
+function back() {
+  window.location.href = "dashboard.html";
+}
+
+render();
