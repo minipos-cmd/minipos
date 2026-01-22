@@ -1,22 +1,22 @@
 console.log("harga.js loaded");
 
-let stok = JSON.parse(localStorage.getItem("stok")) || [];
+let stock = JSON.parse(localStorage.getItem("stock")) || [];
 let cart = [];
 
-console.log("stok:", stok);
+console.log("stock:", stock);
 
-function renderStok() {
+function renderStock() {
   const el = document.getElementById("barangList");
   if (!el) return console.error("barangList not found");
 
   el.innerHTML = "";
 
-  if (stok.length === 0) {
-    el.innerHTML = "<p>Stok kosong</p>";
+  if (stock.length === 0) {
+    el.innerHTML = "<p>Stock kosong</p>";
     return;
   }
 
-  stok.forEach((item, i) => {
+  stock.forEach((item, i) => {
     el.innerHTML += `
       <div class="card">
         <h4>${item.nama}</h4>
@@ -29,13 +29,13 @@ function renderStok() {
 }
 
 function tambah(i) {
-  if (stok[i].jumlah <= 0) return;
+  if (stock[i].jumlah <= 0) return;
 
-  let item = cart.find(c => c.nama === stok[i].nama);
+  let item = cart.find(c => c.nama === stock[i].nama);
   if (item) item.qty++;
-  else cart.push({ nama: stok[i].nama, harga: stok[i].harga, qty: 1 });
+  else cart.push({ nama: stock[i].nama, harga: stock[i].harga, qty: 1 });
 
-  stok[i].jumlah--;
+  stock[i].jumlah--;
   save();
 }
 
@@ -66,16 +66,16 @@ function renderCart() {
 }
 
 function tambahByName(nama) {
-  let i = stok.findIndex(s => s.nama === nama);
+  let i = stock.findIndex(s => s.nama === nama);
   tambah(i);
 }
 
 function kurang(nama) {
   let item = cart.find(c => c.nama === nama);
-  let stokItem = stok.find(s => s.nama === nama);
+  let stockItem = stock.find(s => s.nama === nama);
 
   item.qty--;
-  stokItem.jumlah++;
+  stockItem.jumlah++;
 
   if (item.qty <= 0)
     cart = cart.filter(c => c.nama !== nama);
@@ -106,8 +106,8 @@ function closePopup() {
 }
 
 function save() {
-  localStorage.setItem("stok", JSON.stringify(stok));
-  renderStok();
+  localStorage.setItem("stock", JSON.stringify(stock));
+  renderStock();
   renderCart();
 }
 
@@ -115,5 +115,5 @@ function back() {
   window.location.href = "dashboard.html";
 }
 
-renderStok();
+renderStock();
 renderCart();
