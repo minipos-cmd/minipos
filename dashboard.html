@@ -1,20 +1,102 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Dashboard Kasir</title>
+  <meta charset="UTF-8">
+  <title>MiniPOS - Dashboard</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+    }
+
+    /* HEADER */
+    .header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .logout-btn {
+      background-color: #e53935;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .logout-btn:hover {
+      background-color: #d32f2f;
+    }
+
+    /* CONTENT */
+    .container {
+      padding: 20px;
+    }
+
+    .menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 30px 20px;
+      text-align: center;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      font-size: 18px;
+    }
+
+    .card:hover {
+      background-color: #e8f5e9;
+    }
+  </style>
 </head>
 <body>
-  <h1>Dashboard</h1>
 
-  <ul>
-    <li><a href="harga.html">List Harga</a></li>
-    <li><a href="stok.html">Stok Barang</a></li>
-    <li><button onclick="logout()">Logout</button></li>
-  </ul>
+  <!-- HEADER -->
+  <div class="header">
+    <h1>MiniPOS Dashboard</h1>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
 
+  <!-- CONTENT -->
+  <div class="container">
+    <div class="menu">
+      <div class="card" onclick="go('stok.html')">
+        📦 Stok Barang
+      </div>
+
+      <div class="card" onclick="go('harga.html')">
+        💰 List Harga
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT -->
   <script>
+    // Proteksi: kalau belum login, balik ke login
     if (localStorage.getItem("login") !== "true") {
       window.location.href = "index.html";
+    }
+
+    function go(page) {
+      window.location.href = page;
     }
 
     function logout() {
@@ -22,5 +104,6 @@
       window.location.href = "index.html";
     }
   </script>
+
 </body>
 </html>
