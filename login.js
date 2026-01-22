@@ -1,15 +1,11 @@
-console.log("login.js TERLOAD");
-
-document.getElementById("loginBtn").addEventListener("click", function () {
-  const user = document.getElementById("username").value;
-  const pass = document.getElementById("password").value;
-
-  console.log("Klik login:", user, pass);
+function login() {
+  const user = document.getElementById("username").value.trim();
+  const pass = document.getElementById("password").value.trim();
 
   if (user === "admin" && pass === "1234") {
     localStorage.setItem("login", "true");
     window.location.href = "https://minipos-cmd.github.io/minipos/dashboard.html";
   } else {
-    alert("Username atau password salah");
+    alert("Username atau password salah!");
   }
-});
+}
