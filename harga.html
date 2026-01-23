@@ -39,7 +39,10 @@ button.cancel:hover { background:#d32f2f; }
 
 #preview table, #strukPopup table { width:100%; border-collapse:collapse; }
 #preview th, #preview td, #strukPopup th, #strukPopup td { padding:6px; border-bottom:1px solid #ddd; font-size:14px; }
-#preview td.price, #strukPopup td.price, #preview .total-row td, #strukPopup .total-row td { text-align:right; font-weight:bold; }
+#preview td.price, #strukPopup td.price { text-align:right; font-weight:normal; }
+
+/* Footer di kiri, sama seperti preview */
+#preview .total-row td, #strukPopup .total-row td { text-align:left; font-weight:bold; }
 
 .popup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8); background:#fff; border-radius:10px; padding:20px; width:350px; max-width:90%; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:left; font-family:Arial,sans-serif; z-index:9999; opacity:0; transition:all 0.3s ease; }
 .popup.show { display:block; opacity:1; transform:translate(-50%,-50%) scale(1); }
@@ -77,9 +80,9 @@ button.cancel:hover { background:#d32f2f; }
         <thead><tr><th>Barang</th><th>Jumlah</th><th>Subtotal</th></tr></thead>
         <tbody id="previewList"></tbody>
         <tfoot>
-          <tr class="total-row"><td colspan="2">Total:</td><td id="previewTotal">0</td></tr>
-          <tr class="total-row"><td colspan="2">Bayar:</td><td id="previewBayar">0</td></tr>
-          <tr class="total-row"><td colspan="2">Kembalian:</td><td id="previewKembali">0</td></tr>
+          <tr class="total-row"><td colspan="2">Total: <span id="previewTotal">0</span></td></tr>
+          <tr class="total-row"><td colspan="2">Bayar: <span id="previewBayar">0</span></td></tr>
+          <tr class="total-row"><td colspan="2">Kembalian: <span id="previewKembali">0</span></td></tr>
         </tfoot>
       </table>
       <button class="cancel" onclick="cancelPayment()">Batal</button>
@@ -94,9 +97,9 @@ button.cancel:hover { background:#d32f2f; }
     <thead><tr><th>Barang</th><th>Jumlah</th><th>Subtotal</th></tr></thead>
     <tbody id="strukList"></tbody>
     <tfoot>
-      <tr class="total-row"><td colspan="2">Total:</td><td id="strukTotal">0</td></tr>
-      <tr class="total-row"><td colspan="2">Bayar:</td><td id="strukBayar">0</td></tr>
-      <tr class="total-row"><td colspan="2">Kembalian:</td><td id="strukKembali">0</td></tr>
+      <tr class="total-row"><td colspan="2">Total: <span id="strukTotal">0</span></td></tr>
+      <tr class="total-row"><td colspan="2">Bayar: <span id="strukBayar">0</span></td></tr>
+      <tr class="total-row"><td colspan="2">Kembalian: <span id="strukKembali">0</span></td></tr>
     </tfoot>
   </table>
   <button onclick="closeStruk()">Tutup</button>
