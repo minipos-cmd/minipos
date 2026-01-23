@@ -9,7 +9,6 @@ body {
   font-family: Arial, sans-serif;
   background-color: #f4f4f4;
 }
-
 header {
   background-color: #4CAF50;
   color: white;
@@ -18,7 +17,6 @@ header {
   justify-content: space-between;
   align-items: center;
 }
-
 header button {
   padding: 8px 15px;
   cursor: pointer;
@@ -29,17 +27,14 @@ header button {
   font-weight: bold;
   transition: 0.2s;
 }
-
 header button:hover {
   background-color: #e0e0e0;
 }
-
 .container {
   display: flex;
   padding: 20px;
   gap: 20px;
 }
-
 .left, .right {
   flex: 1;
   background: white;
@@ -49,9 +44,7 @@ header button:hover {
   overflow-y: auto;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
-
 h3 { margin-top: 0; }
-
 .item {
   display: flex;
   justify-content: space-between;
@@ -60,9 +53,7 @@ h3 { margin-top: 0; }
   border-bottom: 1px solid #eee;
   transition: background 0.2s;
 }
-
 .item:hover { background-color: #f9f9f9; }
-
 .item button {
   padding: 5px 10px;
   margin-left: 5px;
@@ -74,7 +65,6 @@ h3 { margin-top: 0; }
   font-weight: bold;
   transition: 0.2s;
 }
-
 .item button:hover { background-color: #45a049; }
 
 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -92,29 +82,57 @@ td.price { text-align: right; font-family: monospace; }
   box-sizing: border-box;
   transition: border 0.2s, box-shadow 0.2s;
 }
-
 .input-bayar:focus {
   outline: none;
   border-color: #4CAF50;
   box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
 }
 
-button.checkout {
+button.submit, button.confirm {
   width: 100%;
   margin-top: 10px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+button.submit {
+  background-color: #2196F3;
+  color: white;
+}
+button.submit:hover { background-color: #1976D2; }
+button.confirm {
+  background-color: #4CAF50;
+  color: white;
+}
+button.confirm:hover { background-color: #388E3C; }
+button.cancel {
+  width: 100%;
+  margin-top: 5px;
   padding: 10px;
   border: none;
   border-radius: 8px;
-  background-color: #4CAF50;
+  background-color: #f44336;
   color: white;
   font-weight: bold;
   cursor: pointer;
   transition: 0.2s;
 }
+button.cancel:hover { background-color: #d32f2f; }
 
-button.checkout:hover { background-color: #45a049; }
+/* Preview pembayaran */
+#preview {
+  display: none;
+  margin-top: 15px;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
 
-/* Popup Struk */
+/* Popup struk */
 .popup {
   display: none;
   position: fixed;
@@ -122,66 +140,37 @@ button.checkout:hover { background-color: #45a049; }
   transform: translate(-50%, -50%) scale(0.8);
   background: #fff;
   border-radius: 10px;
-  padding: 25px 20px;
-  width: 450px;
+  padding: 20px;
+  width: 400px;
   max-width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-  text-align: left;
-  font-family: monospace;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  text-align: center;
+  font-family: Arial, sans-serif;
   z-index: 9999;
   opacity: 0;
   transition: all 0.3s ease;
 }
-
 .popup.show {
   display: block;
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
 }
-
-.popup h2 {
-  margin-top: 0;
-  font-size: 22px;
-  color: #4CAF50;
-  text-align: center;
-}
-
+.popup h2 { margin-top: 0; font-size: 22px; color: #4CAF50; }
 .popup table {
   width: 100%;
-  margin-top: 15px;
+  margin-top: 10px;
   border-collapse: collapse;
 }
-
 .popup th, .popup td {
   border-bottom: 1px solid #ddd;
-  padding: 8px;
+  padding: 6px;
   font-size: 14px;
 }
-
 .popup td.price { text-align: right; }
-
-.popup p {
-  margin: 8px 0;
-  font-weight: bold;
-}
-
-.popup button {
-  margin-top: 15px;
-  padding: 8px 12px;
-  cursor: pointer;
-  border-radius: 6px;
-  border: none;
-  background-color: #4CAF50;
-  color: white;
-  font-weight: bold;
-  transition: 0.2s;
-}
-
+.popup p { margin: 5px 0; font-weight: bold; }
+.popup button { margin-top: 15px; padding: 8px 12px; cursor: pointer; border-radius: 6px; border: none; background-color: #4CAF50; color: white; font-weight: bold; transition: 0.2s; }
 .popup button:hover { background-color: #45a049; }
 
-.separator { border-top: 1px solid #333; margin: 10px 0; }
 </style>
 </head>
 <body>
@@ -201,23 +190,44 @@ button.checkout:hover { background-color: #45a049; }
     <h3>Belanja</h3>
     <table>
       <thead>
-        <tr><th>Barang</th><th>Jumlah</th><th>Subtotal</th></tr>
+        <tr>
+          <th>Barang</th>
+          <th>Jumlah</th>
+          <th>Subtotal</th>
+        </tr>
       </thead>
       <tbody id="cartList"></tbody>
     </table>
     <p>Total: Rp <span id="totalBelanja">0</span></p>
     <input type="number" id="nominalBayar" placeholder="Masukkan nominal bayar" class="input-bayar">
-    <button class="checkout" onclick="checkout()">Bayar</button>
+    <button class="submit" onclick="previewPayment()">Submit</button>
+
+    <!-- Preview sebelum benar-benar bayar -->
+    <div id="preview">
+      <h4>Preview Pembayaran</h4>
+      <table>
+        <thead>
+          <tr><th>Barang</th><th>Jumlah</th><th>Subtotal</th></tr>
+        </thead>
+        <tbody id="previewList"></tbody>
+      </table>
+      <p>Total: Rp <span id="previewTotal">0</span></p>
+      <p>Bayar: Rp <span id="previewBayar">0</span></p>
+      <p>Kembalian: Rp <span id="previewKembali">0</span></p>
+      <button class="cancel" onclick="cancelPayment()">Batal</button>
+      <button class="confirm" onclick="confirmPayment()">Bayar</button>
+    </div>
   </div>
 </div>
 
 <div class="popup" id="strukPopup">
   <h2>Struk Belanja</h2>
   <table>
-    <thead><tr><th>Barang</th><th>Jumlah</th><th>Subtotal</th></tr></thead>
+    <thead>
+      <tr><th>Barang</th><th>Jumlah</th><th>Subtotal</th></tr>
+    </thead>
     <tbody id="strukList"></tbody>
   </table>
-  <div class="separator"></div>
   <p>Total: Rp <span id="strukTotal">0</span></p>
   <p>Bayar: Rp <span id="strukBayar">0</span></p>
   <p>Kembalian: Rp <span id="strukKembali">0</span></p>
@@ -227,6 +237,7 @@ button.checkout:hover { background-color: #45a049; }
 <script>
 let stock = JSON.parse(localStorage.getItem("stock")) || [];
 let cart = [];
+let tempCart = []; // untuk preview sebelum bayar
 
 function renderStock() {
   const list = document.getElementById("stockList");
@@ -235,16 +246,16 @@ function renderStock() {
     const div = document.createElement("div");
     div.className="item";
     div.innerHTML=`<span>${item.nama} (${item.jumlah})</span>
-    <span>
-      <button onclick="addToCart(${index})">+</button>
-      <button onclick="removeFromCart(${index})">-</button>
-    </span>`;
+      <span>
+        <button onclick="addToCart(${index})">+</button>
+        <button onclick="removeFromCart(${index})">-</button>
+      </span>`;
     list.appendChild(div);
   });
 }
 
 function renderCart() {
-  const tbody = document.getElementById("cartList");
+  const tbody=document.getElementById("cartList");
   tbody.innerHTML="";
   let total=0;
   cart.forEach(item=>{
@@ -269,39 +280,77 @@ function addToCart(index){
 
 function removeFromCart(index){
   let c=cart.find(x=>x.nama===stock[index].nama);
-  if(c&&c.jumlah>0){
+  if(c && c.jumlah>0){
     c.jumlah--;
     stock[index].jumlah++;
-    if(c.jumlah===0)cart=cart.filter(x=>x.nama!==c.nama);
+    if(c.jumlah===0) cart=cart.filter(x=>x.nama!==c.nama);
     renderStock(); renderCart();
   }
 }
 
-function checkout(){
-  const bayar=parseInt(document.getElementById("nominalBayar").value);
-  const total=cart.reduce((a,b)=>a+b.harga*b.jumlah,0);
-  if(isNaN(bayar)||bayar<total){alert("Nominal bayar kurang atau tidak valid!");return;}
-  const kembali=bayar-total;
+// Preview sebelum bayar
+function previewPayment(){
+  const bayar = parseInt(document.getElementById("nominalBayar").value);
+  const total = cart.reduce((a,b)=>a+b.harga*b.jumlah,0);
+  if(isNaN(bayar) || bayar<total){alert("Nominal bayar kurang atau tidak valid!"); return;}
 
-  const tbody=document.getElementById("strukList");
+  tempCart = JSON.parse(JSON.stringify(cart)); // clone cart
+  const tbody = document.getElementById("previewList");
   tbody.innerHTML="";
-  cart.forEach(item=>{
+  tempCart.forEach(item=>{
+    const subtotal=item.harga*item.jumlah;
     tbody.innerHTML+=`<tr>
       <td>${item.nama}</td>
       <td>${item.jumlah}</td>
-      <td class="price">Rp ${(item.harga*item.jumlah).toLocaleString('id-ID')}</td>
+      <td class="price">Rp ${subtotal.toLocaleString('id-ID')}</td>
     </tr>`;
   });
+  document.getElementById("previewTotal").innerText=total.toLocaleString('id-ID');
+  document.getElementById("previewBayar").innerText=bayar.toLocaleString('id-ID');
+  document.getElementById("previewKembali").innerText=(bayar-total).toLocaleString('id-ID');
+  document.getElementById("preview").style.display="block";
+}
 
+// Batal pembayaran
+function cancelPayment(){
+  // kembalikan jumlah ke cart asli
+  tempCart.forEach(item=>{
+    const stockItem = stock.find(s=>s.nama===item.nama);
+    if(stockItem) stockItem.jumlah += item.jumlah;
+  });
+  cart = [];
+  renderStock(); renderCart();
+  document.getElementById("preview").style.display="none";
+  document.getElementById("nominalBayar").value="";
+}
+
+// Konfirmasi bayar, tampil struk
+function confirmPayment(){
+  const bayar = parseInt(document.getElementById("nominalBayar").value);
+  const total = tempCart.reduce((a,b)=>a+b.harga*b.jumlah,0);
+
+  // tampilkan popup struk
+  const tbody=document.getElementById("strukList");
+  tbody.innerHTML="";
+  tempCart.forEach(item=>{
+    const subtotal=item.harga*item.jumlah;
+    tbody.innerHTML+=`<tr>
+      <td>${item.nama}</td>
+      <td>${item.jumlah}</td>
+      <td class="price">Rp ${subtotal.toLocaleString('id-ID')}</td>
+    </tr>`;
+  });
   document.getElementById("strukTotal").innerText=total.toLocaleString('id-ID');
   document.getElementById("strukBayar").innerText=bayar.toLocaleString('id-ID');
-  document.getElementById("strukKembali").innerText=kembali.toLocaleString('id-ID');
+  document.getElementById("strukKembali").innerText=(bayar-total).toLocaleString('id-ID');
 
-  const popup=document.getElementById("strukPopup");
-  popup.classList.add("show");
+  document.getElementById("strukPopup").classList.add("show");
 
-  cart=[]; renderStock(); renderCart();
+  // update stok secara permanen
+  cart = []; tempCart = [];
+  document.getElementById("preview").style.display="none";
   document.getElementById("nominalBayar").value="";
+  renderStock(); renderCart();
 }
 
 function closeStruk(){
