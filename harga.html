@@ -8,29 +8,40 @@ body { margin:0; font-family:Arial,sans-serif; background:#f4f4f4; }
 header { background:#4CAF50; color:white; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; }
 header button { padding:8px 15px; cursor:pointer; border:none; border-radius:6px; background:#fff; color:#4CAF50; font-weight:bold; transition:0.2s; }
 header button:hover { background:#e0e0e0; }
+
 .container { display:flex; padding:20px; gap:20px; }
 .left, .right { flex:1; background:white; padding:15px; border-radius:8px; max-height:70vh; overflow-y:auto; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
 h3 { margin-top:0; }
+
 .item { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #eee; transition:0.2s; }
 .item:hover { background:#f9f9f9; }
 .item button { padding:5px 10px; margin-left:5px; cursor:pointer; border:none; border-radius:5px; background:#4CAF50; color:white; font-weight:bold; transition:0.2s; }
 .item button:hover { background:#45a049; }
+
 table { width:100%; border-collapse:collapse; margin-top:10px; }
 th, td { padding:8px; border-bottom:1px solid #ccc; }
 th { background:#f0f0f0; }
 td.price { text-align:right; font-family:monospace; }
+
 .input-bayar { width:100%; padding:10px 12px; margin-top:10px; border-radius:8px; border:1px solid #ccc; font-size:16px; box-sizing:border-box; transition:border 0.2s, box-shadow 0.2s; }
 .input-bayar:focus { outline:none; border-color:#4CAF50; box-shadow:0 0 5px rgba(76,175,80,0.5); }
-button.submit, button.confirm { width:100%; margin-top:10px; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; transition:0.2s; }
-button.submit { background:#2196F3; color:white; }
+
+button.submit { width:100%; margin-top:10px; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; background:#2196F3; color:white; transition:0.2s; }
 button.submit:hover { background:#1976D2; }
-button.confirm { background:#4CAF50; color:white; }
+
+button.confirm { width:100%; margin-top:5px; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; background:#4CAF50; color:white; transition:0.2s; }
 button.confirm:hover { background:#388E3C; }
-button.cancel { width:100%; margin-top:5px; padding:10px; border:none; border-radius:8px; background:#f44336; color:white; font-weight:bold; cursor:pointer; transition:0.2s; }
+
+button.cancel { width:100%; margin-top:5px; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; background:#f44336; color:white; transition:0.2s; }
 button.cancel:hover { background:#d32f2f; }
+
 #preview { display:none; margin-top:15px; padding:15px; background:#f9f9f9; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
 
-/* Popup struk tetap seperti versi lama */
+#preview table { width:100%; border-collapse:collapse; }
+#preview th, #preview td { padding:6px; border-bottom:1px solid #ddd; font-size:14px; }
+#preview td.price { text-align:right; }
+
+/* Popup struk tetap versi lama */
 .popup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8); background:#fff; border-radius:10px; padding:20px; width:350px; max-width:90%; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:center; font-family:Arial,sans-serif; z-index:9999; opacity:0; transition:all 0.3s ease; }
 .popup.show { display:block; opacity:1; transform:translate(-50%,-50%) scale(1); }
 .popup h2 { margin-top:0; font-size:22px; color:#4CAF50; }
@@ -131,7 +142,7 @@ function removeFromCart(index){
   if(c && c.jumlah>0){ c.jumlah--; stock[index].jumlah++; if(c.jumlah===0) cart=cart.filter(x=>x.nama!==c.nama); renderStock(); renderCart(); }
 }
 
-// Preview
+// Preview pembayaran
 function previewPayment(){
   const bayar=parseInt(document.getElementById("nominalBayar").value);
   const total=cart.reduce((a,b)=>a+b.harga*b.jumlah,0);
@@ -159,10 +170,12 @@ function cancelPayment(){
   document.getElementById("nominalBayar").value="";
 }
 
-// Konfirmasi bayar → tampil struk lama
+// Konfirmasi bayar → tampilkan struk popup
 function confirmPayment(){
   const bayar=parseInt(document.getElementById("nominalBayar").value);
   const total=tempCart.reduce((a,b)=>a+b.harga*b.jumlah,0);
+
+  // Pindahkan preview ke struk popup
   const tbody=document.getElementById("strukList"); tbody.innerHTML="";
   tempCart.forEach(item=>{
     const subtotal=item.harga*item.jumlah;
@@ -171,9 +184,18 @@ function confirmPayment(){
   document.getElementById("strukTotal").innerText=total.toLocaleString('id-ID');
   document.getElementById("strukBayar").innerText=bayar.toLocaleString('id-ID');
   document.getElementById("strukKembali").innerText=(bayar-total).toLocaleString('id-ID');
+
+  // Tampilkan popup struk
   document.getElementById("strukPopup").classList.add("show");
-  cart = []; tempCart = []; document.getElementById("preview").style.display="none";
-  document.getElementById("nominalBayar").value=""; renderStock(); renderCart();
+
+  // Kurangi stock permanen dan reset cart/preview
+  tempCart.forEach(item=>{
+    const stockItem = stock.find(s=>s.nama === item.nama);
+    if(stockItem) stockItem.jumlah -= item.jumlah;
+  });
+  cart=[]; tempCart=[]; document.getElementById("preview").style.display="none";
+  document.getElementById("nominalBayar").value="";
+  renderStock(); renderCart();
 }
 
 function closeStruk(){ document.getElementById("strukPopup").classList.remove("show"); }
