@@ -37,18 +37,13 @@ button.cancel:hover { background:#d32f2f; }
 
 #preview { display:none; margin-top:15px; padding:15px; background:#f9f9f9; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
 
-#preview table { width:100%; border-collapse:collapse; }
-#preview th, #preview td { padding:6px; border-bottom:1px solid #ddd; font-size:14px; }
-#preview td.price { text-align:right; }
+#preview table, #strukPopup table { width:100%; border-collapse:collapse; }
+#preview th, #preview td, #strukPopup th, #strukPopup td { padding:6px; border-bottom:1px solid #ddd; font-size:14px; }
+#preview td.price, #strukPopup td.price, #preview .total-row td, #strukPopup .total-row td { text-align:right; font-weight:bold; }
 
-/* Popup struk tetap versi lama */
-.popup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8); background:#fff; border-radius:10px; padding:20px; width:350px; max-width:90%; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:center; font-family:Arial,sans-serif; z-index:9999; opacity:0; transition:all 0.3s ease; }
+.popup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8); background:#fff; border-radius:10px; padding:20px; width:350px; max-width:90%; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:left; font-family:Arial,sans-serif; z-index:9999; opacity:0; transition:all 0.3s ease; }
 .popup.show { display:block; opacity:1; transform:translate(-50%,-50%) scale(1); }
-.popup h2 { margin-top:0; font-size:22px; color:#4CAF50; }
-.popup table { width:100%; margin-top:10px; border-collapse:collapse; }
-.popup th, .popup td { border-bottom:1px solid #ddd; padding:6px; font-size:14px; }
-.popup td.price { text-align:right; }
-.popup p { margin:5px 0; font-weight:bold; }
+.popup h2 { margin-top:0; font-size:22px; color:#4CAF50; text-align:center; }
 .popup button { margin-top:15px; padding:8px 12px; cursor:pointer; border-radius:6px; border:none; background:#4CAF50; color:white; font-weight:bold; transition:0.2s; }
 .popup button:hover { background:#45a049; }
 </style>
@@ -81,10 +76,12 @@ button.cancel:hover { background:#d32f2f; }
       <table>
         <thead><tr><th>Barang</th><th>Jumlah</th><th>Subtotal</th></tr></thead>
         <tbody id="previewList"></tbody>
+        <tfoot>
+          <tr class="total-row"><td colspan="2">Total:</td><td id="previewTotal">0</td></tr>
+          <tr class="total-row"><td colspan="2">Bayar:</td><td id="previewBayar">0</td></tr>
+          <tr class="total-row"><td colspan="2">Kembalian:</td><td id="previewKembali">0</td></tr>
+        </tfoot>
       </table>
-      <p>Total: Rp <span id="previewTotal">0</span></p>
-      <p>Bayar: Rp <span id="previewBayar">0</span></p>
-      <p>Kembalian: Rp <span id="previewKembali">0</span></p>
       <button class="cancel" onclick="cancelPayment()">Batal</button>
       <button class="confirm" onclick="confirmPayment()">Bayar</button>
     </div>
@@ -96,15 +93,20 @@ button.cancel:hover { background:#d32f2f; }
   <table>
     <thead><tr><th>Barang</th><th>Jumlah</th><th>Subtotal</th></tr></thead>
     <tbody id="strukList"></tbody>
+    <tfoot>
+      <tr class="total-row"><td colspan="2">Total:</td><td id="strukTotal">0</td></tr>
+      <tr class="total-row"><td colspan="2">Bayar:</td><td id="strukBayar">0</td></tr>
+      <tr class="total-row"><td colspan="2">Kembalian:</td><td id="strukKembali">0</td></tr>
+    </tfoot>
   </table>
-  <p>Total: Rp <span id="strukTotal">0</span></p>
-  <p>Bayar: Rp <span id="strukBayar">0</span></p>
-  <p>Kembalian: Rp <span id="strukKembali">0</span></p>
   <button onclick="closeStruk()">Tutup</button>
 </div>
 
 <script>
-let stock = JSON.parse(localStorage.getItem("stock")) || [];
+let stock = JSON.parse(localStorage.getItem("stock")) || [
+  {nama:"Indomie Rendang", harga:1500, jumlah:10},
+  {nama:"Intermie", harga:1000, jumlah:5}
+];
 let cart = [];
 let tempCart = [];
 
@@ -170,7 +172,7 @@ function cancelPayment(){
   document.getElementById("nominalBayar").value="";
 }
 
-// Konfirmasi bayar → tampilkan struk popup
+// Konfirmasi bayar → popup struk meniru preview
 function confirmPayment(){
   const bayar=parseInt(document.getElementById("nominalBayar").value);
   const total=tempCart.reduce((a,b)=>a+b.harga*b.jumlah,0);
@@ -188,11 +190,7 @@ function confirmPayment(){
   // Tampilkan popup struk
   document.getElementById("strukPopup").classList.add("show");
 
-  // Kurangi stock permanen dan reset cart/preview
-  tempCart.forEach(item=>{
-    const stockItem = stock.find(s=>s.nama === item.nama);
-    if(stockItem) stockItem.jumlah -= item.jumlah;
-  });
+  // Reset cart & preview
   cart=[]; tempCart=[]; document.getElementById("preview").style.display="none";
   document.getElementById("nominalBayar").value="";
   renderStock(); renderCart();
