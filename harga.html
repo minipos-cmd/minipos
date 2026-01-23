@@ -4,215 +4,184 @@
 <meta charset="UTF-8">
 <title>MiniPOS - Harga</title>
 <style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-  }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+}
 
-  header {
-    background-color: #4CAF50;
-    color: white;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+header {
+  background-color: #4CAF50;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-  header button {
-    padding: 8px 15px;
-    cursor: pointer;
-    border: none;
-    border-radius: 6px;
-    background-color: #fff;
-    color: #4CAF50;
-    font-weight: bold;
-    transition: 0.2s;
-  }
+header button {
+  padding: 8px 15px;
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #4CAF50;
+  font-weight: bold;
+  transition: 0.2s;
+}
 
-  header button:hover {
-    background-color: #e0e0e0;
-  }
+header button:hover {
+  background-color: #e0e0e0;
+}
 
-  .container {
-    display: flex;
-    padding: 20px;
-    gap: 20px;
-  }
+.container {
+  display: flex;
+  padding: 20px;
+  gap: 20px;
+}
 
-  .left, .right {
-    flex: 1;
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    max-height: 70vh;
-    overflow-y: auto;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
+.left, .right {
+  flex: 1;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  max-height: 70vh;
+  overflow-y: auto;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
 
-  h3 {
-    margin-top: 0;
-  }
+h3 { margin-top: 0; }
 
-  .item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
-    transition: background 0.2s;
-  }
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+  transition: background 0.2s;
+}
 
-  .item:hover {
-    background-color: #f9f9f9;
-  }
+.item:hover { background-color: #f9f9f9; }
 
-  .item button {
-    padding: 5px 10px;
-    margin-left: 5px;
-    cursor: pointer;
-    border: none;
-    border-radius: 5px;
-    background-color: #4CAF50;
-    color: white;
-    font-weight: bold;
-    transition: 0.2s;
-  }
+.item button {
+  padding: 5px 10px;
+  margin-left: 5px;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  background-color: #4CAF50;
+  color: white;
+  font-weight: bold;
+  transition: 0.2s;
+}
 
-  .item button:hover {
-    background-color: #45a049;
-  }
+.item button:hover { background-color: #45a049; }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-  }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { padding: 8px; border-bottom: 1px solid #ccc; }
+th { background-color: #f0f0f0; }
+td.price { text-align: right; font-family: monospace; }
 
-  th, td {
-    padding: 8px;
-    border-bottom: 1px solid #ccc;
-  }
+.input-bayar {
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  box-sizing: border-box;
+  transition: border 0.2s, box-shadow 0.2s;
+}
 
-  th {
-    background-color: #f0f0f0;
-  }
+.input-bayar:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
 
-  td.price {
-    text-align: right;
-    font-family: monospace;
-  }
+button.checkout {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background-color: #4CAF50;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
 
-  .input-bayar {
-    width: 100%;
-    padding: 10px 12px;
-    margin-top: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-    box-sizing: border-box;
-    transition: border 0.2s, box-shadow 0.2s;
-  }
+button.checkout:hover { background-color: #45a049; }
 
-  .input-bayar:focus {
-    outline: none;
-    border-color: #4CAF50;
-    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
-  }
+/* Popup Struk */
+.popup {
+  display: none;
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  background: #fff;
+  border-radius: 10px;
+  padding: 25px 20px;
+  width: 450px;
+  max-width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+  text-align: left;
+  font-family: monospace;
+  z-index: 9999;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
 
-  button.checkout {
-    width: 100%;
-    margin-top: 10px;
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-    background-color: #4CAF50;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.2s;
-  }
+.popup.show {
+  display: block;
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
 
-  button.checkout:hover {
-    background-color: #45a049;
-  }
+.popup h2 {
+  margin-top: 0;
+  font-size: 22px;
+  color: #4CAF50;
+  text-align: center;
+}
 
-  /* Popup struk */
-  .popup {
-    display: none;
-    position: fixed;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%) scale(0.8);
-    background: #fff;
-    border-radius: 10px;
-    padding: 20px;
-    width: 350px;
-    max-width: 90%;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    text-align: center;
-    font-family: Arial, sans-serif;
-    z-index: 9999;
-    opacity: 0;
-    transition: all 0.3s ease;
-  }
+.popup table {
+  width: 100%;
+  margin-top: 15px;
+  border-collapse: collapse;
+}
 
-  .popup.show {
-    display: block;
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
+.popup th, .popup td {
+  border-bottom: 1px solid #ddd;
+  padding: 8px;
+  font-size: 14px;
+}
 
-  .popup h2 {
-    margin-top: 0;
-    font-size: 22px;
-    color: #4CAF50;
-  }
+.popup td.price { text-align: right; }
 
-  .popup table {
-    width: 100%;
-    margin-top: 10px;
-    border-collapse: collapse;
-  }
+.popup p {
+  margin: 8px 0;
+  font-weight: bold;
+}
 
-  .popup th, .popup td {
-    border-bottom: 1px solid #ddd;
-    padding: 6px;
-    font-size: 14px;
-  }
+.popup button {
+  margin-top: 15px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  border: none;
+  background-color: #4CAF50;
+  color: white;
+  font-weight: bold;
+  transition: 0.2s;
+}
 
-  .popup td.price {
-    text-align: right;
-  }
+.popup button:hover { background-color: #45a049; }
 
-  .popup p {
-    margin: 5px 0;
-    font-weight: bold;
-    transform: translateY(20px);
-    opacity: 0;
-    transition: all 0.3s ease;
-  }
-
-  .popup.show p {
-    transform: translateY(0);
-    opacity: 1;
-  }
-
-  .popup button {
-    margin-top: 15px;
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 6px;
-    border: none;
-    background-color: #4CAF50;
-    color: white;
-    font-weight: bold;
-    transition: 0.2s;
-  }
-
-  .popup button:hover {
-    background-color: #45a049;
-  }
-
+.separator { border-top: 1px solid #333; margin: 10px 0; }
 </style>
 </head>
 <body>
@@ -232,11 +201,7 @@
     <h3>Belanja</h3>
     <table>
       <thead>
-        <tr>
-          <th>Barang</th>
-          <th>Jumlah</th>
-          <th>Subtotal</th>
-        </tr>
+        <tr><th>Barang</th><th>Jumlah</th><th>Subtotal</th></tr>
       </thead>
       <tbody id="cartList"></tbody>
     </table>
@@ -249,15 +214,10 @@
 <div class="popup" id="strukPopup">
   <h2>Struk Belanja</h2>
   <table>
-    <thead>
-      <tr>
-        <th>Barang</th>
-        <th>Jumlah</th>
-        <th>Subtotal</th>
-      </tr>
-    </thead>
+    <thead><tr><th>Barang</th><th>Jumlah</th><th>Subtotal</th></tr></thead>
     <tbody id="strukList"></tbody>
   </table>
+  <div class="separator"></div>
   <p>Total: Rp <span id="strukTotal">0</span></p>
   <p>Bayar: Rp <span id="strukBayar">0</span></p>
   <p>Kembalian: Rp <span id="strukKembali">0</span></p>
@@ -268,7 +228,6 @@
 let stock = JSON.parse(localStorage.getItem("stock")) || [];
 let cart = [];
 
-// Render stock
 function renderStock() {
   const list = document.getElementById("stockList");
   list.innerHTML = "";
@@ -284,7 +243,6 @@ function renderStock() {
   });
 }
 
-// Render cart
 function renderCart() {
   const tbody = document.getElementById("cartList");
   tbody.innerHTML="";
@@ -301,32 +259,30 @@ function renderCart() {
   document.getElementById("totalBelanja").innerText=total.toLocaleString('id-ID');
 }
 
-// Tambah barang
 function addToCart(index){
   if(stock[index].jumlah<=0)return;
   let c=cart.find(x=>x.nama===stock[index].nama);
   if(c){c.jumlah++;}else{cart.push({...stock[index],jumlah:1});}
   stock[index].jumlah--;
-  renderStock();renderCart();
+  renderStock(); renderCart();
 }
 
-// Kurangi barang
 function removeFromCart(index){
   let c=cart.find(x=>x.nama===stock[index].nama);
   if(c&&c.jumlah>0){
     c.jumlah--;
     stock[index].jumlah++;
     if(c.jumlah===0)cart=cart.filter(x=>x.nama!==c.nama);
-    renderStock();renderCart();
+    renderStock(); renderCart();
   }
 }
 
-// Checkout & tampilkan struk
 function checkout(){
   const bayar=parseInt(document.getElementById("nominalBayar").value);
   const total=cart.reduce((a,b)=>a+b.harga*b.jumlah,0);
   if(isNaN(bayar)||bayar<total){alert("Nominal bayar kurang atau tidak valid!");return;}
   const kembali=bayar-total;
+
   const tbody=document.getElementById("strukList");
   tbody.innerHTML="";
   cart.forEach(item=>{
@@ -336,27 +292,25 @@ function checkout(){
       <td class="price">Rp ${(item.harga*item.jumlah).toLocaleString('id-ID')}</td>
     </tr>`;
   });
+
   document.getElementById("strukTotal").innerText=total.toLocaleString('id-ID');
   document.getElementById("strukBayar").innerText=bayar.toLocaleString('id-ID');
   document.getElementById("strukKembali").innerText=kembali.toLocaleString('id-ID');
 
-  // show popup dengan animasi
   const popup=document.getElementById("strukPopup");
   popup.classList.add("show");
 
-  // reset cart dan input
-  cart=[];renderStock();renderCart();
+  cart=[]; renderStock(); renderCart();
   document.getElementById("nominalBayar").value="";
 }
 
 function closeStruk(){
-  const popup=document.getElementById("strukPopup");
-  popup.classList.remove("show");
+  document.getElementById("strukPopup").classList.remove("show");
 }
 
 function back(){window.location.href="dashboard.html";}
 
-renderStock();renderCart();
+renderStock(); renderCart();
 </script>
 </body>
 </html>
