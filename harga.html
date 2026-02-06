@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>MiniPOS - Harga</title>
 <style>
+/* --- style sama seperti sebelumnya --- */
 body { margin:0; font-family:Arial,sans-serif; background:#f4f4f4; }
 header { background:#4CAF50; color:white; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; }
 header button { padding:8px 15px; cursor:pointer; border:none; border-radius:6px; background:#fff; color:#4CAF50; font-weight:bold; transition:0.2s; }
@@ -41,7 +42,6 @@ button.cancel:hover { background:#d32f2f; }
 #preview th, #preview td, #strukPopup th, #strukPopup td { padding:6px; border-bottom:1px solid #ddd; font-size:14px; }
 #preview td.price, #strukPopup td.price { text-align:right; font-weight:normal; }
 
-/* Footer di kiri, sama seperti preview */
 #preview .total-row td, #strukPopup .total-row td { text-align:left; font-weight:bold; }
 
 .popup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8); background:#fff; border-radius:10px; padding:20px; width:350px; max-width:90%; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:left; font-family:Arial,sans-serif; z-index:9999; opacity:0; transition:all 0.3s ease; }
@@ -113,10 +113,14 @@ let stock = JSON.parse(localStorage.getItem("stock")) || [
 let cart = [];
 let tempCart = [];
 
+// Render stock → filter barang habis
 function renderStock() {
-  const list = document.getElementById("stockList"); list.innerHTML="";
+  const list = document.getElementById("stockList");
+  list.innerHTML = "";
   stock.forEach((item,index)=>{
-    const div=document.createElement("div"); div.className="item";
+    if(item.jumlah <= 0) return; // skip kalau habis
+    const div=document.createElement("div");
+    div.className="item";
     div.innerHTML=`<span>${item.nama} (${item.jumlah})</span>
       <span>
         <button onclick="addToCart(${index})">+</button>
@@ -126,6 +130,7 @@ function renderStock() {
   });
 }
 
+// Render cart
 function renderCart() {
   const tbody=document.getElementById("cartList"); tbody.innerHTML="";
   let total=0;
@@ -136,15 +141,25 @@ function renderCart() {
   document.getElementById("totalBelanja").innerText=total.toLocaleString('id-ID');
 }
 
+// Tambah & kurang barang
 function addToCart(index){
   if(stock[index].jumlah<=0)return;
-  let c=cart.find(x=>x.nama===stock[index].nama); if(c){c.jumlah++;}else{cart.push({...stock[index],jumlah:1});}
-  stock[index].jumlah--; renderStock(); renderCart();
+  let c=cart.find(x=>x.nama===stock[index].nama); 
+  if(c){c.jumlah++;}else{cart.push({...stock[index],jumlah:1});}
+  stock[index].jumlah--; 
+  renderStock(); renderCart();
+  localStorage.setItem("stock", JSON.stringify(stock)); // simpan
 }
 
 function removeFromCart(index){
   let c=cart.find(x=>x.nama===stock[index].nama);
-  if(c && c.jumlah>0){ c.jumlah--; stock[index].jumlah++; if(c.jumlah===0) cart=cart.filter(x=>x.nama!==c.nama); renderStock(); renderCart(); }
+  if(c && c.jumlah>0){ 
+    c.jumlah--; 
+    stock[index].jumlah++; 
+    if(c.jumlah===0) cart=cart.filter(x=>x.nama!==c.nama); 
+    renderStock(); renderCart(); 
+    localStorage.setItem("stock", JSON.stringify(stock)); // simpan
+  }
 }
 
 // Preview pembayaran
@@ -170,17 +185,18 @@ function cancelPayment(){
     const stockItem = stock.find(s=>s.nama===item.nama);
     if(stockItem) stockItem.jumlah += item.jumlah;
   });
-  cart = []; renderStock(); renderCart();
+  cart = []; 
+  renderStock(); renderCart();
   document.getElementById("preview").style.display="none";
   document.getElementById("nominalBayar").value="";
+  localStorage.setItem("stock", JSON.stringify(stock)); // simpan
 }
 
-// Konfirmasi bayar → popup struk meniru preview
+// Konfirmasi bayar
 function confirmPayment(){
   const bayar=parseInt(document.getElementById("nominalBayar").value);
   const total=tempCart.reduce((a,b)=>a+b.harga*b.jumlah,0);
 
-  // Pindahkan preview ke struk popup
   const tbody=document.getElementById("strukList"); tbody.innerHTML="";
   tempCart.forEach(item=>{
     const subtotal=item.harga*item.jumlah;
@@ -190,13 +206,14 @@ function confirmPayment(){
   document.getElementById("strukBayar").innerText=bayar.toLocaleString('id-ID');
   document.getElementById("strukKembali").innerText=(bayar-total).toLocaleString('id-ID');
 
-  // Tampilkan popup struk
   document.getElementById("strukPopup").classList.add("show");
 
   // Reset cart & preview
-  cart=[]; tempCart=[]; document.getElementById("preview").style.display="none";
+  cart=[]; tempCart=[]; 
+  document.getElementById("preview").style.display="none";
   document.getElementById("nominalBayar").value="";
   renderStock(); renderCart();
+  localStorage.setItem("stock", JSON.stringify(stock)); // simpan
 }
 
 function closeStruk(){ document.getElementById("strukPopup").classList.remove("show"); }
