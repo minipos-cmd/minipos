@@ -8,42 +8,30 @@ body { margin:0; font-family:Arial,sans-serif; background:#f4f4f4; }
 header { background:#4CAF50; color:white; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; }
 header button { padding:8px 15px; cursor:pointer; border:none; border-radius:6px; background:#fff; color:#4CAF50; font-weight:bold; transition:0.2s; }
 header button:hover { background:#e0e0e0; }
-
 .container { display:flex; padding:20px; gap:20px; }
 .left, .right { flex:1; background:white; padding:15px; border-radius:8px; max-height:70vh; overflow-y:auto; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
 h3 { margin-top:0; }
-
 .item { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #eee; transition:0.2s; }
 .item:hover { background:#f9f9f9; }
 .item button { padding:5px 10px; margin-left:5px; cursor:pointer; border:none; border-radius:5px; background:#4CAF50; color:white; font-weight:bold; transition:0.2s; }
 .item button:hover { background:#45a049; }
-
 table { width:100%; border-collapse:collapse; margin-top:10px; }
 th, td { padding:8px; border-bottom:1px solid #ccc; }
 th { background:#f0f0f0; }
 td.price { text-align:right; font-family:monospace; }
-
 .input-bayar { width:100%; padding:10px 12px; margin-top:10px; border-radius:8px; border:1px solid #ccc; font-size:16px; box-sizing:border-box; transition:border 0.2s, box-shadow 0.2s; }
 .input-bayar:focus { outline:none; border-color:#4CAF50; box-shadow:0 0 5px rgba(76,175,80,0.5); }
-
 button.submit { width:100%; margin-top:10px; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; background:#2196F3; color:white; transition:0.2s; }
 button.submit:hover { background:#1976D2; }
-
 button.confirm { width:100%; margin-top:5px; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; background:#4CAF50; color:white; transition:0.2s; }
 button.confirm:hover { background:#388E3C; }
-
 button.cancel { width:100%; margin-top:5px; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; background:#f44336; color:white; transition:0.2s; }
 button.cancel:hover { background:#d32f2f; }
-
 #preview { display:none; margin-top:15px; padding:15px; background:#f9f9f9; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-
-#preview table, #strukPopup table { width:100%; border-collapse:collapse; }
-#preview th, #preview td, #strukPopup th, #strukPopup td { padding:6px; border-bottom:1px solid #ddd; font-size:14px; }
-#preview td.price, #strukPopup td.price { text-align:right; font-weight:normal; }
-
-/* Footer di kiri, sama seperti preview */
-#preview .total-row td, #strukPopup .total-row td { text-align:left; font-weight:bold; }
-
+#preview table { width:100%; border-collapse:collapse; }
+#preview th, #preview td { padding:6px; border-bottom:1px solid #ddd; font-size:14px; }
+#preview td.price { text-align:right; font-weight:normal; }
+#preview .total-row td { text-align:left; font-weight:bold; }
 .popup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8); background:#fff; border-radius:10px; padding:20px; width:350px; max-width:90%; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:left; font-family:Arial,sans-serif; z-index:9999; opacity:0; transition:all 0.3s ease; }
 .popup.show { display:block; opacity:1; transform:translate(-50%,-50%) scale(1); }
 .popup h2 { margin-top:0; font-size:22px; color:#4CAF50; text-align:center; }
@@ -105,16 +93,21 @@ button.cancel:hover { background:#d32f2f; }
   <button onclick="closeStruk()">Tutup</button>
 </div>
 
+<!-- Firebase -->
+<script src="firebase.js"></script>
+
 <script>
-let stock = JSON.parse(localStorage.getItem("stock")) || [
-  {nama:"Indomie Rendang", harga:1500, jumlah:10},
-  {nama:"Intermie", harga:1000, jumlah:5}
-];
+// Proteksi login
+if(localStorage.getItem("login")!=="true"){window.location.href="index.html";}
+
+let stock = [];
 let cart = [];
 let tempCart = [];
+let firebaseIds = [];
 
-function renderStock() {
-  const list = document.getElementById("stockList"); list.innerHTML="";
+// --- Render Stock ---
+function renderStock(){
+  const list=document.getElementById("stockList"); list.innerHTML="";
   stock.forEach((item,index)=>{
     const div=document.createElement("div"); div.className="item";
     div.innerHTML=`<span>${item.nama} (${item.jumlah})</span>
@@ -126,7 +119,8 @@ function renderStock() {
   });
 }
 
-function renderCart() {
+// --- Render Cart ---
+function renderCart(){
   const tbody=document.getElementById("cartList"); tbody.innerHTML="";
   let total=0;
   cart.forEach(item=>{
@@ -136,26 +130,48 @@ function renderCart() {
   document.getElementById("totalBelanja").innerText=total.toLocaleString('id-ID');
 }
 
+// --- Load Stock dari Firebase ---
+function loadStockFromFirebase(){
+  db.collection("products").get().then(snapshot=>{
+    stock=[]; firebaseIds=[];
+    snapshot.forEach(doc=>{
+      const data=doc.data();
+      stock.push({nama:data.name,harga:data.price,jumlah:data.quantity});
+      firebaseIds.push(doc.id);
+    });
+    renderStock(); renderCart();
+  }).catch(console.error);
+}
+
+// --- Update Firebase ---
+function updateStockInFirebase(index){
+  const docId=firebaseIds[index];
+  if(!docId) return;
+  db.collection("products").doc(docId).update({quantity:stock[index].jumlah}).catch(console.error);
+}
+
+// --- Add/Remove Cart ---
 function addToCart(index){
   if(stock[index].jumlah<=0)return;
   let c=cart.find(x=>x.nama===stock[index].nama); if(c){c.jumlah++;}else{cart.push({...stock[index],jumlah:1});}
-  stock[index].jumlah--; renderStock(); renderCart();
+  stock[index].jumlah--; updateStockInFirebase(index); renderStock(); renderCart();
 }
 
 function removeFromCart(index){
   let c=cart.find(x=>x.nama===stock[index].nama);
-  if(c && c.jumlah>0){ c.jumlah--; stock[index].jumlah++; if(c.jumlah===0) cart=cart.filter(x=>x.nama!==c.nama); renderStock(); renderCart(); }
+  if(c && c.jumlah>0){ c.jumlah--; stock[index].jumlah++; updateStockInFirebase(index);
+    if(c.jumlah===0) cart=cart.filter(x=>x.nama!==c.nama); renderStock(); renderCart();
+  }
 }
 
-// Preview pembayaran
+// --- Preview / Konfirmasi Bayar ---
 function previewPayment(){
   const bayar=parseInt(document.getElementById("nominalBayar").value);
   const total=cart.reduce((a,b)=>a+b.harga*b.jumlah,0);
   if(isNaN(bayar)||bayar<total){alert("Nominal bayar kurang atau tidak valid!"); return;}
-  tempCart = JSON.parse(JSON.stringify(cart));
+  tempCart=JSON.parse(JSON.stringify(cart));
   const tbody=document.getElementById("previewList"); tbody.innerHTML="";
-  tempCart.forEach(item=>{
-    const subtotal=item.harga*item.jumlah;
+  tempCart.forEach(item=>{ const subtotal=item.harga*item.jumlah;
     tbody.innerHTML+=`<tr><td>${item.nama}</td><td>${item.jumlah}</td><td class="price">Rp ${subtotal.toLocaleString('id-ID')}</td></tr>`;
   });
   document.getElementById("previewTotal").innerText=total.toLocaleString('id-ID');
@@ -164,45 +180,33 @@ function previewPayment(){
   document.getElementById("preview").style.display="block";
 }
 
-// Batal
 function cancelPayment(){
-  tempCart.forEach(item=>{
-    const stockItem = stock.find(s=>s.nama===item.nama);
-    if(stockItem) stockItem.jumlah += item.jumlah;
-  });
-  cart = []; renderStock(); renderCart();
-  document.getElementById("preview").style.display="none";
-  document.getElementById("nominalBayar").value="";
+  tempCart.forEach(item=>{ const s=stock.find(x=>x.nama===item.nama); if(s) s.jumlah+=item.jumlah; });
+  cart=[]; renderStock(); renderCart();
+  document.getElementById("preview").style.display="none"; document.getElementById("nominalBayar").value="";
 }
 
-// Konfirmasi bayar → popup struk meniru preview
 function confirmPayment(){
   const bayar=parseInt(document.getElementById("nominalBayar").value);
   const total=tempCart.reduce((a,b)=>a+b.harga*b.jumlah,0);
-
-  // Pindahkan preview ke struk popup
   const tbody=document.getElementById("strukList"); tbody.innerHTML="";
-  tempCart.forEach(item=>{
-    const subtotal=item.harga*item.jumlah;
+  tempCart.forEach(item=>{ const subtotal=item.harga*item.jumlah;
     tbody.innerHTML+=`<tr><td>${item.nama}</td><td>${item.jumlah}</td><td class="price">Rp ${subtotal.toLocaleString('id-ID')}</td></tr>`;
   });
   document.getElementById("strukTotal").innerText=total.toLocaleString('id-ID');
   document.getElementById("strukBayar").innerText=bayar.toLocaleString('id-ID');
   document.getElementById("strukKembali").innerText=(bayar-total).toLocaleString('id-ID');
-
-  // Tampilkan popup struk
   document.getElementById("strukPopup").classList.add("show");
-
-  // Reset cart & preview
-  cart=[]; tempCart=[]; document.getElementById("preview").style.display="none";
-  document.getElementById("nominalBayar").value="";
+  cart=[]; tempCart=[]; document.getElementById("preview").style.display="none"; document.getElementById("nominalBayar").value="";
   renderStock(); renderCart();
 }
 
 function closeStruk(){ document.getElementById("strukPopup").classList.remove("show"); }
 function back(){ window.location.href="dashboard.html"; }
 
-renderStock(); renderCart();
+// --- Load saat siap ---
+loadStockFromFirebase();
 </script>
+
 </body>
 </html>
