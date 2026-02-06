@@ -4,7 +4,6 @@ if (localStorage.getItem("login") !== "true") {
 }
 
 // ================= CONFIG =================
-// Ganti API_URL dengan URL Web App terbaru dari Apps Script
 const API_URL = "https://script.google.com/macros/s/AKfycbwhrccisFHYyJ25aGq0tu8ENZojqz2Xh0Lyjg374GUcUU8cOspkpnU7xr2Xs-fj_qmpVg/exec";
 let stock = [];
 
