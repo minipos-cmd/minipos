@@ -4,7 +4,6 @@ if (localStorage.getItem("login") !== "true") {
 }
 
 // ================= CONFIG =================
-// Pakai URL Web App terbaru dari Code.gs
 const API_URL = "https://script.google.com/macros/s/AKfycbzxM6XN7l1euGD5iH1R-TySspCKfopsbkZO3WQokoGDqrdibEEmlu4Sc5qY23SvfK1JxA/exec";
 let stock = [];
 
@@ -69,6 +68,9 @@ function tambahBarang() {
 
   fetch(API_URL, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json"  // <- wajib supaya Apps Script bisa parse JSON
+    },
     body: JSON.stringify({
       action: "addStock",
       nama,
@@ -91,6 +93,9 @@ function tambahBarang() {
 function ubah(index, nilai) {
   fetch(API_URL, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json"  // <- wajib juga
+    },
     body: JSON.stringify({
       action: "updateQty",
       index,
