@@ -4,20 +4,23 @@ if (localStorage.getItem("login") !== "true") {
 }
 
 // ================= CONFIG =================
-const API_URL = "PASTE_URL_WEB_APP_DI_SINI";
+const API_URL = "https://script.google.com/macros/s/AKfycbzckQZQG60X2KoFdXEgWyckeuewkgnY05jK7LksLWQgUFlVThT11T5rmw9kW9zg-a6e/exec";
 let stock = [];
 
-// ================= LOAD DATA =================
+// ================= LOAD STOCK =================
 function loadStock() {
   fetch(API_URL + "?action=getStock")
     .then(res => res.json())
     .then(data => {
       stock = data;
       render();
+    })
+    .catch(err => {
+      console.error("Gagal ambil data stock:", err);
     });
 }
 
-// ================= RENDER =================
+// ================= RENDER TABLE =================
 function render() {
   const list = document.getElementById("stockList");
   if (!list) return;
@@ -59,7 +62,7 @@ function tambahBarang() {
   const expired = document.getElementById("expired").value;
 
   if (!nama || isNaN(harga) || isNaN(jumlah)) {
-    alert("Lengkapi data!");
+    alert("Semua field wajib diisi!");
     return;
   }
 
@@ -73,11 +76,14 @@ function tambahBarang() {
       expired
     })
   })
-  .then(res => res.json())
-  .then(() => {
-    closeModal();
-    loadStock();
-  });
+    .then(res => res.json())
+    .then(() => {
+      closeModal();
+      loadStock(); // reload dari Sheets
+    })
+    .catch(err => {
+      console.error("Gagal tambah barang:", err);
+    });
 }
 
 // ================= UPDATE JUMLAH =================
@@ -90,8 +96,11 @@ function ubah(index, nilai) {
       nilai
     })
   })
-  .then(res => res.json())
-  .then(() => loadStock());
+    .then(res => res.json())
+    .then(() => loadStock())
+    .catch(err => {
+      console.error("Gagal update jumlah:", err);
+    });
 }
 
 // ================= MODAL =================
@@ -107,6 +116,7 @@ function closeModal() {
   document.getElementById("expired").value = "";
 }
 
+// ================= NAV =================
 function back() {
   window.location.href = "dashboard.html";
 }
