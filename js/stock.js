@@ -4,7 +4,7 @@ if (localStorage.getItem("login") !== "true") {
 }
 
 // ================= CONFIG =================
-const API_URL = "https://script.google.com/macros/s/AKfycbzxM6XN7l1euGD5iH1R-TySspCKfopsbkZO3WQokoGDqrdibEEmlu4Sc5qY23SvfK1JxA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzGMEYdDk7_88wrC0Si5u50iYWbvzzjjsXSBP-FY61lXlsxkzhLrWTFlvRikQAwre074A/exec";
 let stock = [];
 
 // ================= LOAD STOCK =================
@@ -15,9 +15,7 @@ function loadStock() {
       stock = data;
       render();
     })
-    .catch(err => {
-      console.error("Gagal ambil data stock:", err);
-    });
+    .catch(err => console.error("Gagal ambil data stock:", err));
 }
 
 // ================= RENDER TABLE =================
@@ -68,52 +66,31 @@ function tambahBarang() {
 
   fetch(API_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"  // <- wajib supaya Apps Script bisa parse JSON
-    },
-    body: JSON.stringify({
-      action: "addStock",
-      nama,
-      harga,
-      jumlah,
-      expired
-    })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "addStock", nama, harga, jumlah, expired })
   })
     .then(res => res.json())
     .then(() => {
       closeModal();
-      loadStock(); // reload dari Sheets
+      loadStock();
     })
-    .catch(err => {
-      console.error("Gagal tambah barang:", err);
-    });
+    .catch(err => console.error("Gagal tambah barang:", err));
 }
 
 // ================= UPDATE JUMLAH =================
 function ubah(index, nilai) {
   fetch(API_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"  // <- wajib juga
-    },
-    body: JSON.stringify({
-      action: "updateQty",
-      index,
-      nilai
-    })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "updateQty", index, nilai })
   })
     .then(res => res.json())
     .then(() => loadStock())
-    .catch(err => {
-      console.error("Gagal update jumlah:", err);
-    });
+    .catch(err => console.error("Gagal update jumlah:", err));
 }
 
 // ================= MODAL =================
-function openModal() {
-  document.getElementById("modal").style.display = "flex";
-}
-
+function openModal() { document.getElementById("modal").style.display = "flex"; }
 function closeModal() {
   document.getElementById("modal").style.display = "none";
   document.getElementById("nama").value = "";
@@ -123,9 +100,7 @@ function closeModal() {
 }
 
 // ================= NAV =================
-function back() {
-  window.location.href = "dashboard.html";
-}
+function back() { window.location.href = "dashboard.html"; }
 
 // ================= START =================
 loadStock();
