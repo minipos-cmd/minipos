@@ -4,7 +4,8 @@ if (localStorage.getItem("login") !== "true") {
 }
 
 // ================= CONFIG =================
-const API_URL = "https://script.google.com/macros/s/AKfycbzckQZQG60X2KoFdXEgWyckeuewkgnY05jK7LksLWQgUFlVThT11T5rmw9kW9zg-a6e/exec";
+// Ganti API_URL dengan URL Web App terbaru dari Apps Script
+const API_URL = "https://script.google.com/macros/s/AKfycbwhrccisFHYyJ25aGq0tu8ENZojqz2Xh0Lyjg374GUcUU8cOspkpnU7xr2Xs-fj_qmpVg/exec";
 let stock = [];
 
 // ================= LOAD STOCK =================
