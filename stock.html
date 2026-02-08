@@ -141,14 +141,44 @@ th, td {
 </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // Proteksi login
 if(localStorage.getItem("login")!=="true"){window.location.href="index.html";}
 
-let stock = JSON.parse(localStorage.getItem("stock")) || [];
+// ---------------- Supabase Setup ----------------
+const supabaseUrl = 'https://nqkmqmilofnmvjgyibdk.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21xbWlsb2ZubXZqZ3lpYmRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NjUwNzUsImV4cCI6MjA4NjE0MTA3NX0.1kx_xeDTey3_PqMMKG4DPTNeE7vhFYA29r-tOG3LjQw';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+let stock = []; // akan diisi dari Supabase
 let currentIndexExpired = null;
 let currentIndexEditExpired = null;
 
+// ---------------- Load Stock dari Supabase ----------------
+async function loadStock() {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .order('id', { ascending: true });
+
+  if(error){
+    console.error("Error ambil data Supabase:", error);
+    stock = JSON.parse(localStorage.getItem("stock")) || []; // fallback localStorage
+  } else {
+    // ubah format data sesuai website
+    stock = data.map(item=>({
+      nama: item.name,
+      harga: item.price,
+      jumlah: item.stock,
+      expired: item.expired || []
+    }));
+  }
+
+  render();
+}
+
+// ---------------- Render ----------------
 function render(){
   const list = document.getElementById("stockList");
   list.innerHTML = "";
@@ -185,11 +215,11 @@ function render(){
   localStorage.setItem("stock", JSON.stringify(stock));
 }
 
-// Modal Barang
+// ---------------- Modal Barang ----------------
 function openModal(){document.getElementById("modal").style.display="flex";}
 function closeModal(){document.getElementById("modal").style.display="none"; document.getElementById("nama").value=""; document.getElementById("harga").value=""; document.getElementById("jumlah").value="";}
 
-// Modal Expired
+// ---------------- Modal Expired ----------------
 function openModalExpired(index){
   currentIndexExpired = index;
   document.getElementById("expiredInput").value="";
@@ -197,7 +227,7 @@ function openModalExpired(index){
 }
 function closeModalExpired(){document.getElementById("modalExpired").style.display="none";}
 
-// Modal Edit Expired
+// ---------------- Modal Edit Expired ----------------
 function editExpired(index){
   currentIndexEditExpired = index;
   const expiredList = stock[index].expired;
@@ -216,58 +246,100 @@ function editExpired(index){
 }
 function closeModalEditExpired(){document.getElementById("modalEditExpired").style.display="none";}
 
-// Tambah Barang
-function tambahBarang(){
+// ---------------- Tambah Barang ----------------
+async function tambahBarang(){
   const nama = document.getElementById("nama").value.trim();
   const harga = parseInt(document.getElementById("harga").value);
   const jumlah = parseInt(document.getElementById("jumlah").value);
 
   if(!nama || isNaN(harga) || isNaN(jumlah)){alert("Semua field wajib diisi!"); return;}
-  stock.push({nama,harga,jumlah,expired:[]});
+
+  // Simpan ke Supabase
+  const { data, error } = await supabase
+    .from('products')
+    .insert([{ name: nama, price: harga, stock: jumlah, expired: [] }]);
+
+  if(error){
+    console.error("Error simpan ke Supabase:", error);
+    alert("Gagal simpan barang!");
+  }
+
   closeModal();
-  render();
+  loadStock();
 }
 
-// Ubah jumlah
-function ubah(index,nilai){
+// ---------------- Ubah jumlah ----------------
+async function ubah(index,nilai){
   if(stock[index].jumlah+nilai<0) return;
   stock[index].jumlah += nilai;
+
   if(stock[index].jumlah === 0){if(confirm("Hapus barang ini?")) stock.splice(index,1);}
+
+  // Update ke Supabase
+  const { data, error } = await supabase
+    .from('products')
+    .update({ stock: stock[index].jumlah })
+    .eq('name', stock[index].nama); // pakai nama untuk update sederhana
+
+  if(error) console.error("Error update stock:", error);
+
   render();
 }
 
-// Simpan expired baru
-function simpanExpired(){
+// ---------------- Simpan expired baru ----------------
+async function simpanExpired(){
   const val = document.getElementById("expiredInput").value.trim();
   if(!val){alert("Tanggal tidak boleh kosong"); return;}
   if(!stock[currentIndexExpired].expired) stock[currentIndexExpired].expired=[];
   stock[currentIndexExpired].expired.push(val);
 
-  // Highlight animasi
-  setTimeout(()=>{
-    render();
-  },50);
+  // Update ke Supabase
+  const { data, error } = await supabase
+    .from('products')
+    .update({ expired: stock[currentIndexExpired].expired })
+    .eq('name', stock[currentIndexExpired].nama);
 
+  if(error) console.error("Error update expired:", error);
+
+  setTimeout(()=>{ render(); },50);
   closeModalExpired();
 }
 
-// Update expired
-function updateExpired(i){
+// ---------------- Update expired ----------------
+async function updateExpired(i){
   const val = document.getElementById(`editExpiredInput-${i}`).value.trim();
   if(!val){alert("Tanggal tidak boleh kosong"); return;}
   stock[currentIndexEditExpired].expired[i] = val;
+
+  // Update Supabase
+  const { data, error } = await supabase
+    .from('products')
+    .update({ expired: stock[currentIndexEditExpired].expired })
+    .eq('name', stock[currentIndexEditExpired].nama);
+
+  if(error) console.error("Error update expired:", error);
+
   render();
 }
 
-// Hapus expired
-function hapusExpired(i){
+// ---------------- Hapus expired ----------------
+async function hapusExpired(i){
   stock[currentIndexEditExpired].expired.splice(i,1);
+
+  const { data, error } = await supabase
+    .from('products')
+    .update({ expired: stock[currentIndexEditExpired].expired })
+    .eq('name', stock[currentIndexEditExpired].nama);
+
+  if(error) console.error("Error update expired:", error);
+
   render();
 }
 
 function back(){window.location.href="dashboard.html";}
 
-render();
+// ---------------- Inisialisasi ----------------
+loadStock();
 </script>
 
 </body>
