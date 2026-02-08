@@ -4,18 +4,80 @@
 <meta charset="UTF-8">
 <title>MiniPOS - Stock Barang</title>
 <style>
-body { margin:0; font-family: Arial, sans-serif; background-color:#f4f4f4; }
-header { background-color:#4CAF50; color:white; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; }
-.container { padding:20px; }
-button { padding:6px 12px; cursor:pointer; margin:2px; }
-table { width:100%; border-collapse:collapse; background:white; margin-top:15px; }
-th, td { padding:10px; border-bottom:1px solid #ddd; text-align:center; }
-.summary { margin-top:15px; padding:10px; background:white; border-radius:8px; display:flex; justify-content:space-between; font-weight:bold; }
-.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; }
-.modal-content { background:white; padding:20px; width:320px; border-radius:8px; text-align:center; }
-.modal-content input { width:100%; padding:8px; margin-bottom:10px; box-sizing:border-box; }
-.expired-date { display:inline-block; background:#e0e0e0; padding:2px 6px; border-radius:4px; margin:2px; transition:background 0.3s; }
-.expired-date.highlight { background:#fff176; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+}
+header {
+  background-color: #4CAF50;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.container {
+  padding: 20px;
+}
+button {
+  padding: 6px 12px;
+  cursor: pointer;
+  margin: 2px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  margin-top: 15px;
+}
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+.summary {
+  margin-top: 15px;
+  padding: 10px;
+  background: white;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+}
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  background: white;
+  padding: 20px;
+  width: 320px;
+  border-radius: 8px;
+  text-align: center;
+}
+.modal-content input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+.expired-date {
+  display: inline-block;
+  background: #e0e0e0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin: 2px;
+  transition: background 0.3s;
+}
+.expired-date.highlight {
+  background: #fff176; /* kuning highlight */
+}
 </style>
 </head>
 <body>
@@ -79,29 +141,15 @@ th, td { padding:10px; border-bottom:1px solid #ddd; text-align:center; }
 </div>
 </div>
 
-<!-- Supabase JS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-
 <script>
 // Proteksi login
 if(localStorage.getItem("login")!=="true"){window.location.href="index.html";}
 
-// --- Supabase setup ---
-const SUPABASE_URL = "https://nqkmqmilofnmvjgyibdk.supabase.co"; 
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21xbWlsb2ZubXZqZ3lpYmRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NjUwNzUsImV4cCI6MjA4NjE0MTA3NX0.1kx_xeDTey3_PqMMKG4DPTNeE7vhFYA29r-tOG3LjQw";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// --- State ---
-let stock = [];
+let stock = JSON.parse(localStorage.getItem("stock")) || [];
 let currentIndexExpired = null;
 let currentIndexEditExpired = null;
 
-// --- Render stock dari Supabase ---
-async function render() {
-  const { data, error } = await supabase.from('products').select('*').order('id');
-  if(error){ console.error(error); return; }
-  stock = data || [];
-
+function render(){
   const list = document.getElementById("stockList");
   list.innerHTML = "";
 
@@ -109,89 +157,50 @@ async function render() {
   let totalJumlah = 0;
 
   stock.forEach((item,index)=>{
-    const expiredHtml = item.expired ? item.expired.map(d=>`<span class="expired-date">${d}</span>`).join(" ") : "";
+    const expiredHtml = item.expired ? item.expired.map((date)=>`
+      <span class="expired-date">${date}</span>
+    `).join(" ") : "";
+
     list.innerHTML += `
       <tr>
         <td>${index+1}</td>
-        <td>${item.name}</td>
-        <td>Rp ${item.price.toLocaleString('id-ID')}</td>
-        <td>${item.stock}</td>
+        <td>${item.nama}</td>
+        <td>Rp ${item.harga.toLocaleString('id-ID')}</td>
+        <td>${item.jumlah}</td>
         <td>
-          <button onclick="ubah(${item.id},1)">+</button>
-          <button onclick="ubah(${item.id},-1)">-</button>
+          <button onclick="ubah(${index},1)">+</button>
+          <button onclick="ubah(${index},-1)">-</button>
           <button onclick="openModalExpired(${index})">+ Exp</button>
           <button onclick="editExpired(${index})">Edit Exp</button>
-          <button onclick="hapusBarang(${item.id})">Hapus</button>
         </td>
         <td>${expiredHtml}</td>
       </tr>
     `;
-    totalBarang += item.stock;
-    totalJumlah += item.stock*item.price;
+    totalBarang += item.jumlah;
+    totalJumlah += item.jumlah*item.harga;
   });
 
   document.getElementById("totalBarang").innerText = totalBarang;
   document.getElementById("totalJumlah").innerText = totalJumlah.toLocaleString("id-ID");
+  localStorage.setItem("stock", JSON.stringify(stock));
 }
 
-// --- Modal ---
+// Modal Barang
 function openModal(){document.getElementById("modal").style.display="flex";}
 function closeModal(){document.getElementById("modal").style.display="none"; document.getElementById("nama").value=""; document.getElementById("harga").value=""; document.getElementById("jumlah").value="";}
-function openModalExpired(index){currentIndexExpired=index; document.getElementById("expiredInput").value=""; document.getElementById("modalExpired").style.display="flex";}
+
+// Modal Expired
+function openModalExpired(index){
+  currentIndexExpired = index;
+  document.getElementById("expiredInput").value="";
+  document.getElementById("modalExpired").style.display="flex";
+}
 function closeModalExpired(){document.getElementById("modalExpired").style.display="none";}
-function closeModalEditExpired(){document.getElementById("modalEditExpired").style.display="none";}
 
-// --- Tambah Barang ---
-async function tambahBarang(){
-  const nama = document.getElementById("nama").value.trim();
-  const harga = parseInt(document.getElementById("harga").value);
-  const jumlah = parseInt(document.getElementById("jumlah").value);
-  if(!nama || isNaN(harga) || isNaN(jumlah)){alert("Semua field wajib diisi!"); return;}
-
-  const { data, error } = await supabase.from('products').insert([{ name:nama, price:harga, stock:jumlah, expired:[] }]);
-  if(error){ alert("Gagal tambah barang!"); console.error(error); return; }
-  closeModal();
-  render();
-}
-
-// --- Ubah jumlah ---
-async function ubah(id, nilai){
-  const item = stock.find(s=>s.id===id);
-  if(!item) return;
-  const newStock = item.stock + nilai;
-  if(newStock <0) return;
-  if(newStock===0 && !confirm("Hapus barang ini?")) return;
-  if(newStock===0){
-    await hapusBarang(id);
-    return;
-  }
-  const { error } = await supabase.from('products').update({ stock:newStock }).eq('id',id);
-  if(error){ console.error(error); return; }
-  render();
-}
-
-// --- Hapus Barang ---
-async function hapusBarang(id){
-  const { error } = await supabase.from('products').delete().eq('id',id);
-  if(error){ console.error(error); return; }
-  render();
-}
-
-// --- Expired ---
-async function simpanExpired(){
-  const val = document.getElementById("expiredInput").value.trim();
-  if(!val){alert("Tanggal tidak boleh kosong"); return;}
-  const item = stock[currentIndexExpired];
-  const newExpired = item.expired ? [...item.expired, val] : [val];
-  const { error } = await supabase.from('products').update({ expired:newExpired }).eq('id',item.id);
-  if(error){ console.error(error); return; }
-  closeModalExpired();
-  render();
-}
-
+// Modal Edit Expired
 function editExpired(index){
   currentIndexEditExpired = index;
-  const expiredList = stock[index].expired || [];
+  const expiredList = stock[index].expired;
   const container = document.getElementById("expiredEditList");
   container.innerHTML = "";
   expiredList.forEach((date,i)=>{
@@ -205,31 +214,59 @@ function editExpired(index){
   });
   document.getElementById("modalEditExpired").style.display="flex";
 }
+function closeModalEditExpired(){document.getElementById("modalEditExpired").style.display="none";}
 
-async function updateExpired(i){
+// Tambah Barang
+function tambahBarang(){
+  const nama = document.getElementById("nama").value.trim();
+  const harga = parseInt(document.getElementById("harga").value);
+  const jumlah = parseInt(document.getElementById("jumlah").value);
+
+  if(!nama || isNaN(harga) || isNaN(jumlah)){alert("Semua field wajib diisi!"); return;}
+  stock.push({nama,harga,jumlah,expired:[]});
+  closeModal();
+  render();
+}
+
+// Ubah jumlah
+function ubah(index,nilai){
+  if(stock[index].jumlah+nilai<0) return;
+  stock[index].jumlah += nilai;
+  if(stock[index].jumlah === 0){if(confirm("Hapus barang ini?")) stock.splice(index,1);}
+  render();
+}
+
+// Simpan expired baru
+function simpanExpired(){
+  const val = document.getElementById("expiredInput").value.trim();
+  if(!val){alert("Tanggal tidak boleh kosong"); return;}
+  if(!stock[currentIndexExpired].expired) stock[currentIndexExpired].expired=[];
+  stock[currentIndexExpired].expired.push(val);
+
+  // Highlight animasi
+  setTimeout(()=>{
+    render();
+  },50);
+
+  closeModalExpired();
+}
+
+// Update expired
+function updateExpired(i){
   const val = document.getElementById(`editExpiredInput-${i}`).value.trim();
   if(!val){alert("Tanggal tidak boleh kosong"); return;}
-  const item = stock[currentIndexEditExpired];
-  const newExpired = [...item.expired];
-  newExpired[i] = val;
-  const { error } = await supabase.from('products').update({ expired:newExpired }).eq('id',item.id);
-  if(error){ console.error(error); return; }
+  stock[currentIndexEditExpired].expired[i] = val;
   render();
 }
 
-async function hapusExpired(i){
-  const item = stock[currentIndexEditExpired];
-  const newExpired = [...item.expired];
-  newExpired.splice(i,1);
-  const { error } = await supabase.from('products').update({ expired:newExpired }).eq('id',item.id);
-  if(error){ console.error(error); return; }
+// Hapus expired
+function hapusExpired(i){
+  stock[currentIndexEditExpired].expired.splice(i,1);
   render();
 }
 
-// --- Dashboard ---
 function back(){window.location.href="dashboard.html";}
 
-// --- Init ---
 render();
 </script>
 
