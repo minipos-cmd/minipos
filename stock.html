@@ -1,346 +1,113 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<title>MiniPOS - Stock Barang</title>
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
-}
-header {
-  background-color: #4CAF50;
-  color: white;
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.container {
-  padding: 20px;
-}
-button {
-  padding: 6px 12px;
-  cursor: pointer;
-  margin: 2px;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  margin-top: 15px;
-}
-th, td {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
-  text-align: center;
-}
-.summary {
-  margin-top: 15px;
-  padding: 10px;
-  background: white;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  font-weight: bold;
-}
-.modal {
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5);
-  justify-content: center;
-  align-items: center;
-}
-.modal-content {
-  background: white;
-  padding: 20px;
-  width: 320px;
-  border-radius: 8px;
-  text-align: center;
-}
-.modal-content input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  box-sizing: border-box;
-}
-.expired-date {
-  display: inline-block;
-  background: #e0e0e0;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin: 2px;
-  transition: background 0.3s;
-}
-.expired-date.highlight {
-  background: #fff176; /* kuning highlight */
-}
-</style>
-</head>
-<body>
+<!-- Tambahkan di head -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
 
-<header>
-<h2>Stock Barang</h2>
-<button onclick="back()">⬅ Dashboard</button>
-</header>
-
-<div class="container">
-<button onclick="openModal()">➕ Tambah Barang</button>
-
-<table>
-  <thead>
-    <tr>
-      <th>No</th>
-      <th>Nama Barang</th>
-      <th>Harga</th>
-      <th>Jumlah</th>
-      <th>Aksi</th>
-      <th>Expired</th>
-    </tr>
-  </thead>
-  <tbody id="stockList"></tbody>
-</table>
-
-<div class="summary">
-  <div>Total Barang : <span id="totalBarang">0</span></div>
-  <div>Jumlah Total : Rp. <span id="totalJumlah">0</span></div>
-</div>
-</div>
-
-<!-- Modal Tambah Barang -->
-<div class="modal" id="modal">
-<div class="modal-content">
-<h3>Tambah Barang</h3>
-<input type="text" id="nama" placeholder="Nama Barang">
-<input type="number" id="harga" placeholder="Harga (Rp)">
-<input type="number" id="jumlah" placeholder="Jumlah">
-<button onclick="tambahBarang()">Simpan</button>
-<button onclick="closeModal()">Batal</button>
-</div>
-</div>
-
-<!-- Modal Tambah Expired -->
-<div class="modal" id="modalExpired">
-<div class="modal-content">
-<h3>Tambah Expired</h3>
-<input type="text" id="expiredInput" placeholder="DD-MM-YYYY">
-<button onclick="simpanExpired()">Simpan</button>
-<button onclick="closeModalExpired()">Batal</button>
-</div>
-</div>
-
-<!-- Modal Edit Expired -->
-<div class="modal" id="modalEditExpired">
-<div class="modal-content">
-<h3>Edit / Hapus Expired</h3>
-<div id="expiredEditList"></div>
-<button onclick="closeModalEditExpired()">Tutup</button>
-</div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// Proteksi login
-if(localStorage.getItem("login")!=="true"){window.location.href="index.html";}
+  // ===== Supabase setup =====
+  const supabaseUrl = 'https://nqkmqmilofnmvjgyibdk.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21xbWlsb2ZubXZqZ3lpYmRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NjUwNzUsImV4cCI6MjA4NjE0MTA3NX0.1kx_xeDTey3_PqMMKG4DPTNeE7vhFYA29r-tOG3LjQw';
+  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-// ---------------- Supabase Setup ----------------
-const supabaseUrl = 'https://nqkmqmilofnmvjgyibdk.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xa21xbWlsb2ZubXZqZ3lpYmRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NjUwNzUsImV4cCI6MjA4NjE0MTA3NX0.1kx_xeDTey3_PqMMKG4DPTNeE7vhFYA29r-tOG3LjQw';
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+  // ===== Override stock variable =====
+  let stock = [];
 
-let stock = []; // akan diisi dari Supabase
-let currentIndexExpired = null;
-let currentIndexEditExpired = null;
+  // ===== Fetch stock dari Supabase =====
+  async function fetchStock() {
+    const { data, error } = await supabase
+      .from('products')  // ganti dengan nama tabel kamu
+      .select('*')
+      .order('id', { ascending: true });
 
-// ---------------- Load Stock dari Supabase ----------------
-async function loadStock() {
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .order('id', { ascending: true });
+    if(error){
+      console.error('Error fetch:', error);
+      return;
+    }
 
-  if(error){
-    console.error("Error ambil data Supabase:", error);
-    stock = JSON.parse(localStorage.getItem("stock")) || []; // fallback localStorage
-  } else {
-    // ubah format data sesuai website
-    stock = data.map(item=>({
+    stock = data.map(item => ({
       nama: item.name,
       harga: item.price,
       jumlah: item.stock,
       expired: item.expired || []
     }));
+
+    render();
   }
 
-  render();
-}
+  // ===== Tambah barang ke Supabase =====
+  async function tambahBarang(){
+    const nama = document.getElementById("nama").value.trim();
+    const harga = parseInt(document.getElementById("harga").value);
+    const jumlah = parseInt(document.getElementById("jumlah").value);
 
-// ---------------- Render ----------------
-function render(){
-  const list = document.getElementById("stockList");
-  list.innerHTML = "";
+    if(!nama || isNaN(harga) || isNaN(jumlah)){alert("Semua field wajib diisi!"); return;}
 
-  let totalBarang = 0;
-  let totalJumlah = 0;
+    const { data, error } = await supabase.from('products').insert([
+      { name: nama, price: harga, stock: jumlah, expired: [] }
+    ]);
 
-  stock.forEach((item,index)=>{
-    const expiredHtml = item.expired ? item.expired.map((date)=>`
-      <span class="expired-date">${date}</span>
-    `).join(" ") : "";
-
-    list.innerHTML += `
-      <tr>
-        <td>${index+1}</td>
-        <td>${item.nama}</td>
-        <td>Rp ${item.harga.toLocaleString('id-ID')}</td>
-        <td>${item.jumlah}</td>
-        <td>
-          <button onclick="ubah(${index},1)">+</button>
-          <button onclick="ubah(${index},-1)">-</button>
-          <button onclick="openModalExpired(${index})">+ Exp</button>
-          <button onclick="editExpired(${index})">Edit Exp</button>
-        </td>
-        <td>${expiredHtml}</td>
-      </tr>
-    `;
-    totalBarang += item.jumlah;
-    totalJumlah += item.jumlah*item.harga;
-  });
-
-  document.getElementById("totalBarang").innerText = totalBarang;
-  document.getElementById("totalJumlah").innerText = totalJumlah.toLocaleString("id-ID");
-  localStorage.setItem("stock", JSON.stringify(stock));
-}
-
-// ---------------- Modal Barang ----------------
-function openModal(){document.getElementById("modal").style.display="flex";}
-function closeModal(){document.getElementById("modal").style.display="none"; document.getElementById("nama").value=""; document.getElementById("harga").value=""; document.getElementById("jumlah").value="";}
-
-// ---------------- Modal Expired ----------------
-function openModalExpired(index){
-  currentIndexExpired = index;
-  document.getElementById("expiredInput").value="";
-  document.getElementById("modalExpired").style.display="flex";
-}
-function closeModalExpired(){document.getElementById("modalExpired").style.display="none";}
-
-// ---------------- Modal Edit Expired ----------------
-function editExpired(index){
-  currentIndexEditExpired = index;
-  const expiredList = stock[index].expired;
-  const container = document.getElementById("expiredEditList");
-  container.innerHTML = "";
-  expiredList.forEach((date,i)=>{
-    container.innerHTML += `
-      <div>
-        <input type="text" id="editExpiredInput-${i}" value="${date}">
-        <button onclick="updateExpired(${i})">Simpan</button>
-        <button onclick="hapusExpired(${i})">Hapus</button>
-      </div>
-    `;
-  });
-  document.getElementById("modalEditExpired").style.display="flex";
-}
-function closeModalEditExpired(){document.getElementById("modalEditExpired").style.display="none";}
-
-// ---------------- Tambah Barang ----------------
-async function tambahBarang(){
-  const nama = document.getElementById("nama").value.trim();
-  const harga = parseInt(document.getElementById("harga").value);
-  const jumlah = parseInt(document.getElementById("jumlah").value);
-
-  if(!nama || isNaN(harga) || isNaN(jumlah)){alert("Semua field wajib diisi!"); return;}
-
-  // Simpan ke Supabase
-  const { data, error } = await supabase
-    .from('products')
-    .insert([{ name: nama, price: harga, stock: jumlah, expired: [] }]);
-
-  if(error){
-    console.error("Error simpan ke Supabase:", error);
-    alert("Gagal simpan barang!");
+    if(error){alert('Gagal tambah barang: '+error.message); return;}
+    closeModal();
+    fetchStock();
   }
 
-  closeModal();
-  loadStock();
-}
+  // ===== Ubah jumlah barang di Supabase =====
+  async function ubah(index, nilai){
+    const item = stock[index];
+    const newJumlah = item.jumlah + nilai;
+    if(newJumlah < 0) return;
 
-// ---------------- Ubah jumlah ----------------
-async function ubah(index,nilai){
-  if(stock[index].jumlah+nilai<0) return;
-  stock[index].jumlah += nilai;
+    if(newJumlah === 0){
+      if(!confirm("Hapus barang ini?")) return;
+      await supabase.from('products').delete().eq('name', item.nama);
+    } else {
+      await supabase.from('products')
+        .update({ stock: newJumlah })
+        .eq('name', item.nama);
+    }
 
-  if(stock[index].jumlah === 0){if(confirm("Hapus barang ini?")) stock.splice(index,1);}
+    fetchStock();
+  }
 
-  // Update ke Supabase
-  const { data, error } = await supabase
-    .from('products')
-    .update({ stock: stock[index].jumlah })
-    .eq('name', stock[index].nama); // pakai nama untuk update sederhana
+  // ===== Simpan expired di Supabase =====
+  async function simpanExpired(){
+    const val = document.getElementById("expiredInput").value.trim();
+    if(!val){alert("Tanggal tidak boleh kosong"); return;}
+    const item = stock[currentIndexExpired];
+    const newExpired = item.expired ? [...item.expired, val] : [val];
 
-  if(error) console.error("Error update stock:", error);
+    await supabase.from('products')
+      .update({ expired: newExpired })
+      .eq('name', item.nama);
 
-  render();
-}
+    closeModalExpired();
+    fetchStock();
+  }
 
-// ---------------- Simpan expired baru ----------------
-async function simpanExpired(){
-  const val = document.getElementById("expiredInput").value.trim();
-  if(!val){alert("Tanggal tidak boleh kosong"); return;}
-  if(!stock[currentIndexExpired].expired) stock[currentIndexExpired].expired=[];
-  stock[currentIndexExpired].expired.push(val);
+  async function updateExpired(i){
+    const val = document.getElementById(`editExpiredInput-${i}`).value.trim();
+    if(!val){alert("Tanggal tidak boleh kosong"); return;}
+    const item = stock[currentIndexEditExpired];
+    const newExpired = [...item.expired];
+    newExpired[i] = val;
 
-  // Update ke Supabase
-  const { data, error } = await supabase
-    .from('products')
-    .update({ expired: stock[currentIndexExpired].expired })
-    .eq('name', stock[currentIndexExpired].nama);
+    await supabase.from('products')
+      .update({ expired: newExpired })
+      .eq('name', item.nama);
 
-  if(error) console.error("Error update expired:", error);
+    fetchStock();
+  }
 
-  setTimeout(()=>{ render(); },50);
-  closeModalExpired();
-}
+  async function hapusExpired(i){
+    const item = stock[currentIndexEditExpired];
+    const newExpired = [...item.expired];
+    newExpired.splice(i,1);
 
-// ---------------- Update expired ----------------
-async function updateExpired(i){
-  const val = document.getElementById(`editExpiredInput-${i}`).value.trim();
-  if(!val){alert("Tanggal tidak boleh kosong"); return;}
-  stock[currentIndexEditExpired].expired[i] = val;
+    await supabase.from('products')
+      .update({ expired: newExpired })
+      .eq('name', item.nama);
 
-  // Update Supabase
-  const { data, error } = await supabase
-    .from('products')
-    .update({ expired: stock[currentIndexEditExpired].expired })
-    .eq('name', stock[currentIndexEditExpired].nama);
+    fetchStock();
+  }
 
-  if(error) console.error("Error update expired:", error);
-
-  render();
-}
-
-// ---------------- Hapus expired ----------------
-async function hapusExpired(i){
-  stock[currentIndexEditExpired].expired.splice(i,1);
-
-  const { data, error } = await supabase
-    .from('products')
-    .update({ expired: stock[currentIndexEditExpired].expired })
-    .eq('name', stock[currentIndexEditExpired].nama);
-
-  if(error) console.error("Error update expired:", error);
-
-  render();
-}
-
-function back(){window.location.href="dashboard.html";}
-
-// ---------------- Inisialisasi ----------------
-loadStock();
+  // ===== Init =====
+  fetchStock();  // ambil data dari Supabase saat load
 </script>
-
-</body>
-</html>
